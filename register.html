@@ -161,6 +161,43 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const user = document.getElementById('regUser').value.trim();
+        const pass = document.getElementById('regPass').value;
+        const fullname = document.getElementById('regName').value.trim();
+        const phone = document.getElementById('regPhone').value.trim();
+
+        if (pass.length < 6) {
+            Swal.fire({ icon: 'warning', title: 'รหัสผ่านสั้นเกินไป', text: 'ต้องมี 6 ตัวอักษรขึ้นไป' });
+            return;
+        }
+
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        if (users.some(u => u.username.toLowerCase() === user.toLowerCase())) {
+            Swal.fire({ icon: 'error', title: 'ชื่อผู้ใช้นี้มีผู้ใช้แล้ว' });
+            return;
+        }
+
+        // เก็บข้อมูล User ลง LocalStorage
+        users.push({ 
+            username: user, 
+            password: pass, 
+            fullname: fullname, 
+            phone: phone, 
+            role: 'user' 
+        });
+        localStorage.setItem('users', JSON.stringify(users));
+
+        Swal.fire({ icon: 'success', title: 'สมัครสำเร็จ', showConfirmButton: false, timer: 1500 })
+            .then(() => window.location.href = 'login.html');
+    });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     document.getElementById('registerForm').addEventListener('submit', (e) => {
@@ -224,6 +261,43 @@
         });
     });
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const user = document.getElementById('regUser').value.trim();
+        const pass = document.getElementById('regPass').value;
+        const fullname = document.getElementById('regName').value.trim();
+        const phone = document.getElementById('regPhone').value.trim();
+
+        if (pass.length < 6) {
+            Swal.fire({ icon: 'warning', title: 'รหัสผ่านสั้นเกินไป', text: 'ต้องมี 6 ตัวอักษรขึ้นไป' });
+            return;
+        }
+
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        if (users.some(u => u.username.toLowerCase() === user.toLowerCase())) {
+            Swal.fire({ icon: 'error', title: 'ชื่อผู้ใช้นี้มีผู้ใช้แล้ว' });
+            return;
+        }
+
+        // เก็บข้อมูล User ลง LocalStorage
+        users.push({ 
+            username: user, 
+            password: pass, 
+            fullname: fullname, 
+            phone: phone, 
+            role: 'user' 
+        });
+        localStorage.setItem('users', JSON.stringify(users));
+
+        Swal.fire({ icon: 'success', title: 'สมัครสำเร็จ', showConfirmButton: false, timer: 1500 })
+            .then(() => window.location.href = 'login.html');
+    });
+</script>
+
+
 
 </body>
 </html>
