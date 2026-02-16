@@ -229,5 +229,27 @@
     window.onload = renderAdminTable;
 </script>
 
+<script>
+function logout() {
+    Swal.fire({
+        title: 'ยืนยันการออกจากระบบ?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'ออกจากระบบ',
+        cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // ลบข้อมูล Session หรือข้อมูลการ Login (ถ้ามี)
+            // ตัวอย่างเช่น sessionStorage.removeItem('currentUser');
+            
+            // ส่งกลับไปหน้า Login
+            window.location.href = 'login.html'; 
+        }
+    });
+}
+</script>
+
 </body>
 </html>
