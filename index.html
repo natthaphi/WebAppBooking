@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking | index</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/auth.js"></script>
+    
+    <style>
+        :root {
+            --primary-grad: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #f43f5e 100%);
+            --dark-bg: #0f172a; --slate-900: #1e293b; --glass: rgba(255, 255, 255, 0.03);
+        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--dark-bg); color: #fff; overflow-x: hidden; }
+        .bg-orb { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%); z-index: -1; top: -200px; right: -100px; }
+        .navbar { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 0; }
+        .brand-text { background: var(--primary-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; font-size: 1.5rem; }
+        .hero-section { padding: 120px 0 60px; text-align: center; }
+        .text-gradient { background: var(--primary-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .feature-card { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 40px; transition: 0.4s; height: 100%; }
+        .feature-card:hover { transform: translateY(-10px); background: rgba(255,255,255,0.06); border-color: #6366f1; }
+        .btn-aurora { background: var(--primary-grad); color: white; border: none; padding: 12px 30px; border-radius: 100px; font-weight: 600; transition: 0.3s; }
+        .btn-aurora:hover { transform: scale(1.05); box-shadow: 0 10px 20px rgba(99,102,241,0.4); color: white; }
+    </style>
+</head>
+<body>
+    <div class="bg-orb"></div>
+    <nav class="navbar sticky-top">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="navbar-brand brand-text" href="index.html">BOOKING</a>
+            <a href="login.html" class="btn btn-aurora">Get Started</a>
+        </div>
+    </nav>
+    <div class="container hero-section">
+        <h1 class="display-2 fw-800 mb-4">สำนักสงฆ์ถ้ำป่าสารภีธรรม <span class="text-gradient">จองคิวได้เลย..</span></h1>
+        <p class="lead text-secondary mb-5">สัมผัสประสบการณ์การจองที่รวดเร็วและปลอดภัยที่สุด</p>
+        <div class="row g-4 text-start">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <i class="fas fa-bolt fa-2x mb-3 text-info"></i>
+                    <h3>สำนักสงฆ์ถ้ำป่าสารภีธรรม</h3>
+                    <p class="text-secondary">สำนักสงฆ์แห่งนี้มักมีการจัดพิธีทางศาสนาและพิธีกรรมความเชื่อแบบล้านนาที่สำคัญ</p>
+                    <a href="Hyper Sync.html" class="text-decoration-none text-info">คลิก  รายละเอียด →</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <i class="fas fa-fingerprint fa-2x mb-3 text-danger"></i>
+                    <h3>พิกัดและการเดินทาง</h3>
+                    <p class="text-secondary">
+                       พิกัดและการเดินทาง
+ที่อยู่: ตำบลแม่คำ อำเภอแม่จัน จังหวัดเชียงราย 57240
+การเดินทาง: ตั้งอยู่ไม่ไกลจากถนนพหลโยธิน ช่วงระหว่างแม่จันไปแม่สาย เข้าซอยไปตามทางตำบลแม่คำครับ
+เวลาทำการ: เปิดให้เข้าชมและปฏิบัติธรรมทุกวัน 
+เวลา 10:00 – 17:00 น.
+                    </p>
+                    <a href="Biometric Flow.html" class="text-decoration-none text-danger">คลิก รายละเอียด →</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <i class="fas fa-magic fa-2x mb-3 text-warning"></i>
+                    <h3>ประวัติ : สำนักสงฆ์</h3>
+                    <p class="text-secondary">       หากคุณวางแผนจะเดินทางไปเยี่ยมชมหรือปฏิบัติธรรม แนะนำให้ตรวจสอบปฏิทินกิจกรรมของทางสำนักสงฆ์ก่อน เพราะในช่วงที่มีพิธีกรรมใหญ่ คนอาจจะคึกคักเป็นพิเศษ...</p>
+                    <a href="Auto Magic.html" class="text-decoration-none text-warning">คลิก  รายละเอียด →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
