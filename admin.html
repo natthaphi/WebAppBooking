@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Admin | ระบบจัดการการจอง</title>
+    <title>Web Admin | Telegram Notification System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
@@ -11,193 +11,100 @@
     
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-glow: rgba(79, 70, 229, 0.4);
-            --secondary: #0ea5e9;
-            --bg-body: #f8fafc;
-            --sidebar-dark: #0f172a;
-            --card-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.04), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
-            --glass: rgba(255, 255, 255, 0.9);
+            --primary: #0088cc; /* Telegram Blue */
+            --sidebar-dark: #17212b;
+            --bg-body: #f4f7f9;
         }
 
-        body {
-            font-family: 'Plus Jakarta Sans', 'Kanit', sans-serif;
-            background-color: var(--bg-body);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.03) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.03) 0px, transparent 50%);
-            color: #1e293b;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+        body { font-family: 'Plus Jakarta Sans', 'Kanit', sans-serif; background-color: var(--bg-body); overflow-x: hidden; }
 
-        /* Sidebar พร้อมระบบสไลด์ */
+        /* Sidebar System */
         .sidebar {
-            width: 280px; 
-            height: calc(100vh - 40px);
+            width: 280px; height: calc(100vh - 40px);
             background: var(--sidebar-dark);
             position: fixed; top: 20px; left: 20px;
             z-index: 1050; border-radius: 28px;
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
+        .sidebar.collapsed { left: -320px; }
+        .main-content { margin-left: 320px; padding: 2.5rem; transition: all 0.5s ease; }
+        .main-content.expanded { margin-left: 20px; }
 
-        /* เมื่อ Sidebar ถูกปิด */
-        .sidebar.collapsed {
-            left: -320px;
+        .toggle-btn {
+            position: fixed; left: 295px; top: 50px; z-index: 1100;
+            background: var(--primary); color: white; border: none;
+            width: 35px; height: 35px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; cursor: pointer; transition: 0.5s;
         }
+        .sidebar.collapsed + .toggle-btn { left: 20px; transform: rotate(180deg); }
 
-        .main-content { 
-            margin-left: 320px; 
-            padding: 2.5rem; 
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
-        }
+        .glass-card { background: white; border-radius: 30px; padding: 25px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .nav-link { color: #94a3b8; padding: 12px 20px; border-radius: 15px; text-decoration: none; display: block; margin: 8px 15px; cursor: pointer; transition: 0.3s; }
+        .nav-link:hover { color: white; background: rgba(255,255,255,0.1); }
+        .nav-link.active { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(0,136,204,0.3); }
 
-        /* เมื่อหน้าเนื้อหาขยาย */
-        .main-content.expanded {
-            margin-left: 20px;
-        }
-
-        /* ปุ่ม Toggle สำหรับ Desktop */
-        .toggle-sidebar-btn {
-            position: fixed;
-            left: 295px;
-            top: 50px;
-            z-index: 1100;
-            background: var(--primary);
-            color: white;
-            border: none;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            transition: 0.5s;
-        }
-
-        .sidebar.collapsed + .toggle-sidebar-btn {
-            left: 20px;
-            transform: rotate(180deg);
-        }
-
-        .nav-link {
-            color: #94a3b8; padding: 0.9rem 1.5rem;
-            border-radius: 16px; margin: 0.4rem 1.2rem;
-            display: flex; align-items: center; transition: 0.2s;
-            font-weight: 500; cursor: pointer;
-            text-decoration: none;
-        }
-
-        .nav-link:hover { background: rgba(255, 255, 255, 0.05); color: #fff; transform: translateX(4px); }
-
-        .nav-link.active {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white !important;
-            box-shadow: 0 10px 15px -3px var(--primary-glow);
-        }
-
-        /* Overlay สำหรับมือถือ */
-        .sidebar-overlay {
-            display: none;
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4); z-index: 1040;
-            backdrop-filter: blur(2px);
-        }
-        .sidebar-overlay.active { display: block; }
+        .page-section { display: none; }
+        .page-section.active { display: block; animation: fadeIn 0.5s; }
 
         @media (max-width: 991px) {
             .sidebar { left: -320px; top: 0; height: 100vh; border-radius: 0; }
             .sidebar.active { left: 0; }
-            .main-content { margin-left: 0; padding: 1.5rem; }
-            .main-content.expanded { margin-left: 0; }
-            .toggle-sidebar-btn { display: none; }
+            .main-content { margin-left: 0; padding: 15px; }
+            .toggle-btn { display: none; }
         }
-
-        .glass-card { background: var(--glass); backdrop-filter: blur(10px); border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.7); box-shadow: var(--card-shadow); padding: 1.8rem; }
-        .stat-badge { width: 48px; height: 48px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 1.2rem; }
-        .page-section { display: none; }
-        .page-section.active { display: block; animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
-
-<div class="mobile-nav d-lg-none bg-white p-3 shadow-sm sticky-top">
-    <div class="d-flex justify-content-between align-items-center">
-        <h5 class="mb-0 fw-bold" style="color: var(--primary)"><i class="fas fa-layer-group"></i> ระบบหลังบ้าน</h5>
-        <button class="btn btn-light" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-    </div>
-</div>
-
 <div class="d-flex">
     <nav class="sidebar" id="sidebar">
-        <div class="p-4 mb-4 text-white">
-            <h4 class="fw-bold mb-0"><i class="fas fa-bolt text-warning me-2"></i> ระบบ Admin</h4>
+        <div class="p-4 text-white text-center">
+            <h4 class="fw-bold"><i class="fab fa-telegram me-2"></i> Admin Panel</h4>
         </div>
-        <ul class="nav flex-column">
-            <li class="nav-item"><a class="nav-link active" id="nav-dashboard" onclick="showPage('dashboard')"><i class="fas fa-home-alt me-3"></i> แดชบอร์ด</a></li>
-            <li class="nav-item"><a class="nav-link" id="nav-booking" onclick="showPage('booking')"><i class="fas fa-calendar-check me-3"></i> จัดการการจอง</a></li>
-            <li class="nav-item mt-5"><a onclick="handleLogout()" class="nav-link text-danger"><i class="fas fa-sign-out-alt me-3"></i> ออกจากระบบ</a></li>
-        </ul>
+        <div class="mt-3">
+            <a class="nav-link active" id="link-dashboard" onclick="showPage('dashboard')"><i class="fas fa-chart-line me-2"></i> ภาพรวมคิว</a>
+            <a class="nav-link" id="link-booking" onclick="showPage('booking')"><i class="fas fa-list me-2"></i> รายชื่อลูกค้า</a>
+        </div>
     </nav>
 
-    <button class="toggle-sidebar-btn shadow" onclick="toggleSidebar()" id="desktopToggle">
-        <i class="fas fa-chevron-left"></i>
-    </button>
+    <button class="toggle-btn shadow" onclick="toggleSidebar()" id="btnToggle"><i class="fas fa-chevron-left"></i></button>
 
     <div class="main-content w-100" id="mainContent">
-        <header class="d-flex justify-content-between align-items-end mb-5">
-            <div>
-                <h2 class="fw-bold text-slate-900 mb-1" id="pageTitle">ภาพรวมระบบ</h2>
-                <p class="text-muted small mb-0"><i class="far fa-calendar-alt me-1"></i> ยินดีต้อนรับ, ผู้ดูแลระบบ</p>
-            </div>
+        <header class="mb-4 d-flex justify-content-between align-items-center">
+            <h2 class="fw-bold" id="pageTitle">ภาพรวมคิว</h2>
+            <div id="connectionStatus"><span class="badge bg-success rounded-pill px-3 py-2"><i class="fas fa-circle me-1 small"></i> Telegram Bot Ready</span></div>
         </header>
 
         <section id="dashboard" class="page-section active">
             <div class="row g-4 mb-4">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="glass-card">
-                        <div class="stat-badge bg-primary-subtle text-primary"><i class="fas fa-users"></i></div>
-                        <p class="text-muted small fw-bold mb-1">คิวทั้งหมด</p>
-                        <h3 class="fw-bold mb-0" id="statTotal">0</h3>
+                        <small class="text-muted fw-bold">คิวทั้งหมดในระบบ</small>
+                        <h1 class="display-4 fw-bold mb-0" id="totalCount">0</h1>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="glass-card">
-                        <div class="stat-badge bg-warning-subtle text-warning"><i class="fas fa-clock"></i></div>
-                        <p class="text-muted small fw-bold mb-1">รอดำเนินการ</p>
-                        <h3 class="fw-bold mb-0" id="statPending">0</h3>
+                        <small class="text-muted fw-bold">รอยืนยัน</small>
+                        <h1 class="display-4 fw-bold mb-0 text-warning" id="pendingCount">0</h1>
                     </div>
                 </div>
             </div>
             <div class="glass-card">
-                <h5 class="fw-bold mb-4">สถิติการใช้งาน</h5>
-                <div style="height: 300px;">
-                    <canvas id="myChart"></canvas>
-                </div>
+                <h5 class="fw-bold mb-4">สถิติสัปดาห์นี้</h5>
+                <div style="height: 300px;"><canvas id="bookingChart"></canvas></div>
             </div>
         </section>
 
         <section id="booking" class="page-section">
             <div class="glass-card">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-bold mb-0">รายการนัดหมาย</h5>
-                    <button class="btn btn-primary btn-sm rounded-pill px-4" onclick="loadBookings()">
-                        <i class="fas fa-sync me-1"></i> รีเฟรช
-                    </button>
-                </div>
                 <div class="table-responsive">
-                    <table class="table align-middle">
-                        <thead>
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
                             <tr>
                                 <th>ID ลูกค้า</th>
                                 <th>ชื่อลูกค้า</th>
-                                <th>รายละเอียด</th>
                                 <th>วัน-เวลา</th>
                                 <th>สถานะ</th>
                                 <th class="text-end">การจัดการ</th>
@@ -215,84 +122,118 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    let myChartInstance = null;
-    let currentBookingCount = 0;
-    let isAudioUnlocked = false;
+    // ---------------------------------------------------------
+    // 1. CONFIG: ใส่ข้อมูล Telegram ของคุณที่นี่
+    // ---------------------------------------------------------
+    const TELEGRAM_TOKEN = '8449281474:AAG8jGiuNHPLVbmUJxnOWtLvl_wSiIAEbjc';         // ใส่_TOKEN_ของ_BOT_ตรงนี้
+    const TELEGRAM_CHAT_ID = '6702154980';      // ใส่_CHAT_ID_ของคุณตรงนี้
 
-    // --- 1. ระบบ Sidebar ---
+    async function sendTelegramMessage(booking) {
+        if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes('ใส่_TOKEN')) return;
+
+        const text = `🔔 *มีการจองใหม่เข้ามา!*\n` +
+                     `━━━━━━━━━━━━━━━\n` +
+                     `🆔 *ID:* #${booking.id.toString().slice(-4)}\n` +
+                     `👤 *ลูกค้า:* ${booking.name}\n` +
+                     `📅 *วันที่:* ${booking.date}\n` +
+                     `⏰ *เวลา:* ${booking.time} น.\n` +
+                     `📝 *โน้ต:* ${booking.note || '-'}\n` +
+                     `━━━━━━━━━━━━━━━`;
+
+        try {
+            await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: TELEGRAM_CHAT_ID,
+                    text: text,
+                    parse_mode: 'Markdown'
+                })
+            });
+        } catch (err) { console.error("Telegram Error:", err); }
+    }
+
+    // ---------------------------------------------------------
+    // 2. REAL-TIME WATCHER
+    // ---------------------------------------------------------
+    let currentCount = JSON.parse(localStorage.getItem('allBookings') || '[]').length;
+
+    function watchForNewBookings() {
+        setInterval(() => {
+            const bookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
+            if (bookings.length > currentCount) {
+                const latest = bookings[bookings.length - 1];
+                
+                // แจ้งเตือนในหน้าเว็บ
+                Swal.fire({
+                    title: '🔔 คิวใหม่!',
+                    text: `คุณ ${latest.name} ได้จองเข้ามาแล้ว`,
+                    icon: 'info',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 5000
+                });
+
+                // ส่งเข้า Telegram
+                sendTelegramMessage(latest);
+
+                currentCount = bookings.length;
+                loadBookings();
+            } else if (bookings.length < currentCount) {
+                currentCount = bookings.length;
+                loadBookings();
+            }
+        }, 3000);
+    }
+
+    // ---------------------------------------------------------
+    // 3. UI LOGIC
+    // ---------------------------------------------------------
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         const mainContent = document.getElementById('mainContent');
-        const overlay = document.getElementById('overlay');
-
-        if (window.innerWidth >= 992) {
-            sidebar.classList.toggle('collapsed');
-            mainContent.classList.toggle('expanded');
-        } else {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        }
+        sidebar.classList.toggle('collapsed');
+        sidebar.classList.toggle('active'); // สำหรับ Mobile
+        mainContent.classList.toggle('expanded');
     }
 
-    // --- 2. ระบบนำทางหน้า ---
     function showPage(pageId) {
-        document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        
         document.getElementById(pageId).classList.add('active');
-        document.getElementById('nav-' + pageId).classList.add('active');
-        
-        const titles = { 'dashboard': 'ภาพรวมระบบ', 'booking': 'จัดการการจอง' };
-        document.getElementById('pageTitle').innerText = titles[pageId];
-        
-        if (window.innerWidth < 992) {
-            document.getElementById('sidebar').classList.remove('active');
-            document.getElementById('overlay').classList.remove('active');
-        }
-
-        if (pageId === 'dashboard') initChart();
-        if (pageId === 'booking') loadBookings();
+        document.getElementById('link-' + pageId).classList.add('active');
+        document.getElementById('pageTitle').innerText = (pageId === 'dashboard') ? 'ภาพรวมคิว' : 'รายชื่อลูกค้า';
+        if(window.innerWidth < 991) toggleSidebar();
+        loadBookings();
     }
 
-    // --- 3. จัดการข้อมูลการจอง (เพิ่ม ID ลูกค้า) ---
     function loadBookings() {
         const bookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
-        currentBookingCount = bookings.length;
-        const tbody = document.getElementById('adminTableBody');
-        
-        updateStats(bookings);
+        document.getElementById('totalCount').innerText = bookings.length;
+        document.getElementById('pendingCount').innerText = bookings.filter(b => b.status !== 'confirmed').length;
 
+        const tbody = document.getElementById('adminTableBody');
         if (bookings.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูลการจอง</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">ไม่พบข้อมูลการจอง</td></tr>';
             return;
         }
 
-        bookings.sort((a, b) => b.id - a.id);
-        tbody.innerHTML = bookings.map(b => `
-            <tr class="animate__animated animate__fadeInUp">
+        tbody.innerHTML = [...bookings].reverse().map(b => `
+            <tr class="animate__animated animate__fadeIn">
                 <td><span class="badge bg-secondary-subtle text-secondary">#${b.id.toString().slice(-4)}</span></td>
                 <td><b>${b.name}</b></td>
-                <td><span class="badge bg-light text-dark">${b.note || '-'}</span></td>
                 <td>${b.date}<br><small class="text-primary">${b.time} น.</small></td>
-                <td>${b.status === 'confirmed' ? '<span class="badge bg-success">ยืนยันแล้ว</span>' : '<span class="badge bg-warning">รอยืนยัน</span>'}</td>
+                <td><span class="badge ${b.status === 'confirmed' ? 'bg-success' : 'bg-warning'}">${b.status === 'confirmed' ? 'ยืนยันแล้ว' : 'รอดำเนินการ'}</span></td>
                 <td class="text-end">
-                    ${b.status !== 'confirmed' ? `<button onclick="confirmBooking(${b.id})" class="btn btn-sm btn-primary">ยืนยัน</button>` : ''}
-                    <button onclick="deleteBooking(${b.id})" class="btn btn-sm text-danger ms-2"><i class="fas fa-trash"></i></button>
+                    <button class="btn btn-sm text-danger" onclick="deleteItem(${b.id})"><i class="fas fa-trash"></i></button>
                 </td>
             </tr>
         `).join('');
     }
 
-    function confirmBooking(id) {
-        let bookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
-        bookings = bookings.map(b => b.id === id ? {...b, status: 'confirmed'} : b);
-        localStorage.setItem('allBookings', JSON.stringify(bookings));
-        loadBookings();
-        Swal.fire({ icon: 'success', title: 'ยืนยันสำเร็จ', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
-    }
-
-    function deleteBooking(id) {
-        Swal.fire({ title: 'ลบรายการนี้?', text: "ข้อมูลจะหายถาวร!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' }).then(res => {
+    function deleteItem(id) {
+        Swal.fire({ title: 'ลบรายการ?', text: 'ข้อมูลนี้จะหายไปจากระบบ', icon: 'warning', showCancelButton: true }).then(res => {
             if (res.isConfirmed) {
                 let bookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
                 bookings = bookings.filter(b => b.id !== id);
@@ -302,43 +243,29 @@
         });
     }
 
-    function updateStats(bookings) {
-        document.getElementById('statTotal').innerText = bookings.length;
-        document.getElementById('statPending').innerText = bookings.filter(b => b.status !== 'confirmed').length;
-    }
-
-    // --- 4. กราฟ ---
-    function initChart() {
-        const ctx = document.getElementById('myChart').getContext('2d');
-        if (myChartInstance) myChartInstance.destroy();
-        myChartInstance = new Chart(ctx, {
+    // ---------------------------------------------------------
+    // 4. CHART INIT
+    // ---------------------------------------------------------
+    window.onload = () => {
+        loadBookings();
+        watchForNewBookings();
+        const ctx = document.getElementById('bookingChart').getContext('2d');
+        new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสฯ', 'ศุกร์', 'เสาร์', 'อาทิตย์'],
+                labels: ['จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.', 'อา.'],
                 datasets: [{
-                    label: 'ยอดการจอง',
-                    data: [15, 22, 18, 30, 25, 40, 35],
-                    borderColor: '#4f46e5',
-                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    label: 'ยอดจอง',
+                    data: [10, 22, 15, 25, 30, 45, 38],
+                    borderColor: '#0088cc',
                     tension: 0.4,
-                    fill: true
+                    fill: true,
+                    backgroundColor: 'rgba(0, 136, 204, 0.05)'
                 }]
             },
             options: { responsive: true, maintainAspectRatio: false }
         });
-    }
-
-    function handleLogout() {
-        Swal.fire({ title: 'ออกจากระบบ?', icon: 'question', showCancelButton: true }).then(res => {
-            if (res.isConfirmed) window.location.href = "login.html";
-        });
-    }
-
-    window.onload = () => {
-        loadBookings();
-        initChart();
     };
 </script>
-
 </body>
 </html>
