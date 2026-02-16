@@ -31,7 +31,7 @@
             overflow-x: hidden;
         }
 
-        /* Sidebar Sidebar สไลด์ */
+        /* Sidebar พร้อมระบบสไลด์ */
         .sidebar {
             width: 280px; 
             height: calc(100vh - 40px);
@@ -42,9 +42,9 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
 
-        /* เมื่อ Sidebar ถูกปิด (Slide out) */
+        /* เมื่อ Sidebar ถูกปิด */
         .sidebar.collapsed {
-            left: -300px;
+            left: -320px;
         }
 
         .main-content { 
@@ -53,7 +53,7 @@
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
         }
 
-        /* เมื่อพื้นที่เนื้อหาขยาย */
+        /* เมื่อหน้าเนื้อหาขยาย */
         .main-content.expanded {
             margin-left: 20px;
         }
@@ -88,6 +88,7 @@
             border-radius: 16px; margin: 0.4rem 1.2rem;
             display: flex; align-items: center; transition: 0.2s;
             font-weight: 500; cursor: pointer;
+            text-decoration: none;
         }
 
         .nav-link:hover { background: rgba(255, 255, 255, 0.05); color: #fff; transform: translateX(4px); }
@@ -105,7 +106,6 @@
             background: rgba(0,0,0,0.4); z-index: 1040;
             backdrop-filter: blur(2px);
         }
-
         .sidebar-overlay.active { display: block; }
 
         @media (max-width: 991px) {
@@ -116,10 +116,8 @@
             .toggle-sidebar-btn { display: none; }
         }
 
-        /* สไตล์อื่นๆ */
-        .glass-card { background: var(--glass); backdrop-filter: blur(10px); border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.7); box-shadow: var(--card-shadow); padding: 1.8rem; transition: all 0.3s ease; }
+        .glass-card { background: var(--glass); backdrop-filter: blur(10px); border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.7); box-shadow: var(--card-shadow); padding: 1.8rem; }
         .stat-badge { width: 48px; height: 48px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 1.2rem; }
-        .chart-wrapper { width: 100%; height: 300px; }
         .page-section { display: none; }
         .page-section.active { display: block; animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -148,7 +146,7 @@
         </ul>
     </nav>
 
-    <button class="toggle-sidebar-btn shadow" onclick="toggleSidebar()">
+    <button class="toggle-sidebar-btn shadow" onclick="toggleSidebar()" id="desktopToggle">
         <i class="fas fa-chevron-left"></i>
     </button>
 
@@ -179,7 +177,7 @@
             </div>
             <div class="glass-card">
                 <h5 class="fw-bold mb-4">สถิติการใช้งาน</h5>
-                <div class="chart-wrapper">
+                <div style="height: 300px;">
                     <canvas id="myChart"></canvas>
                 </div>
             </div>
@@ -197,6 +195,7 @@
                     <table class="table align-middle">
                         <thead>
                             <tr>
+                                <th>ID ลูกค้า</th>
                                 <th>ชื่อลูกค้า</th>
                                 <th>รายละเอียด</th>
                                 <th>วัน-เวลา</th>
@@ -220,38 +219,22 @@
     let currentBookingCount = 0;
     let isAudioUnlocked = false;
 
-    // --- ฟังก์ชัน Sidebar สไลด์ ---
+    // --- 1. ระบบ Sidebar ---
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         const mainContent = document.getElementById('mainContent');
         const overlay = document.getElementById('overlay');
 
         if (window.innerWidth >= 992) {
-            // โหมด Desktop: พับเก็บ
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('expanded');
         } else {
-            // โหมด Mobile: เลื่อนเข้า-ออก
             sidebar.classList.toggle('active');
             overlay.classList.toggle('active');
         }
     }
 
-    // ฟังก์ชันปลดล็อกเสียง
-    window.addEventListener('click', () => {
-        if (!isAudioUnlocked) {
-            isAudioUnlocked = true;
-            console.log("Audio ready");
-        }
-    }, { once: true });
-
-    function playAlertSound() {
-        if (isAudioUnlocked) {
-            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-            audio.play().catch(e => console.log("Sound error"));
-        }
-    }
-
+    // --- 2. ระบบนำทางหน้า ---
     function showPage(pageId) {
         document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
@@ -262,7 +245,6 @@
         const titles = { 'dashboard': 'ภาพรวมระบบ', 'booking': 'จัดการการจอง' };
         document.getElementById('pageTitle').innerText = titles[pageId];
         
-        // ปิด Sidebar อัตโนมัติเมื่อกดเมนูในมือถือ
         if (window.innerWidth < 992) {
             document.getElementById('sidebar').classList.remove('active');
             document.getElementById('overlay').classList.remove('active');
@@ -272,27 +254,30 @@
         if (pageId === 'booking') loadBookings();
     }
 
+    // --- 3. จัดการข้อมูลการจอง (เพิ่ม ID ลูกค้า) ---
     function loadBookings() {
         const bookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
         currentBookingCount = bookings.length;
         const tbody = document.getElementById('adminTableBody');
+        
         updateStats(bookings);
 
         if (bookings.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-muted">ไม่พบข้อมูลการจอง</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูลการจอง</td></tr>';
             return;
         }
 
         bookings.sort((a, b) => b.id - a.id);
         tbody.innerHTML = bookings.map(b => `
             <tr class="animate__animated animate__fadeInUp">
+                <td><span class="badge bg-secondary-subtle text-secondary">#${b.id.toString().slice(-4)}</span></td>
                 <td><b>${b.name}</b></td>
                 <td><span class="badge bg-light text-dark">${b.note || '-'}</span></td>
                 <td>${b.date}<br><small class="text-primary">${b.time} น.</small></td>
                 <td>${b.status === 'confirmed' ? '<span class="badge bg-success">ยืนยันแล้ว</span>' : '<span class="badge bg-warning">รอยืนยัน</span>'}</td>
                 <td class="text-end">
                     ${b.status !== 'confirmed' ? `<button onclick="confirmBooking(${b.id})" class="btn btn-sm btn-primary">ยืนยัน</button>` : ''}
-                    <button onclick="deleteBooking(${b.id})" class="btn btn-sm text-danger"><i class="fas fa-trash"></i></button>
+                    <button onclick="deleteBooking(${b.id})" class="btn btn-sm text-danger ms-2"><i class="fas fa-trash"></i></button>
                 </td>
             </tr>
         `).join('');
@@ -303,10 +288,11 @@
         bookings = bookings.map(b => b.id === id ? {...b, status: 'confirmed'} : b);
         localStorage.setItem('allBookings', JSON.stringify(bookings));
         loadBookings();
+        Swal.fire({ icon: 'success', title: 'ยืนยันสำเร็จ', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
     }
 
     function deleteBooking(id) {
-        Swal.fire({ title: 'ลบรายการนี้?', icon: 'warning', showCancelButton: true }).then(res => {
+        Swal.fire({ title: 'ลบรายการนี้?', text: "ข้อมูลจะหายถาวร!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' }).then(res => {
             if (res.isConfirmed) {
                 let bookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
                 bookings = bookings.filter(b => b.id !== id);
@@ -321,19 +307,7 @@
         document.getElementById('statPending').innerText = bookings.filter(b => b.status !== 'confirmed').length;
     }
 
-    function watchForNewBookings() {
-        setInterval(() => {
-            const bookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
-            if (bookings.length > currentBookingCount) {
-                const latest = bookings[bookings.length - 1];
-                playAlertSound();
-                Swal.fire({ title: '🔔 การจองใหม่!', text: `คุณ ${latest.name}`, icon: 'info', toast: true, position: 'top-end', timer: 5000, showConfirmButton: false });
-                loadBookings();
-            }
-            currentBookingCount = bookings.length;
-        }, 3000);
-    }
-
+    // --- 4. กราฟ ---
     function initChart() {
         const ctx = document.getElementById('myChart').getContext('2d');
         if (myChartInstance) myChartInstance.destroy();
@@ -343,11 +317,11 @@
                 labels: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสฯ', 'ศุกร์', 'เสาร์', 'อาทิตย์'],
                 datasets: [{
                     label: 'ยอดการจอง',
-                    data: [12, 19, 15, 25, 22, 30, 28],
+                    data: [15, 22, 18, 30, 25, 40, 35],
                     borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
                     tension: 0.4,
-                    fill: true,
-                    backgroundColor: 'rgba(79, 70, 229, 0.1)'
+                    fill: true
                 }]
             },
             options: { responsive: true, maintainAspectRatio: false }
@@ -355,14 +329,16 @@
     }
 
     function handleLogout() {
-        Swal.fire({ title: 'ออกจากระบบ?', showCancelButton: true }).then(res => { if (res.isConfirmed) window.location.href = "login.html"; });
+        Swal.fire({ title: 'ออกจากระบบ?', icon: 'question', showCancelButton: true }).then(res => {
+            if (res.isConfirmed) window.location.href = "login.html";
+        });
     }
 
     window.onload = () => {
         loadBookings();
         initChart();
-        watchForNewBookings();
     };
 </script>
+
 </body>
 </html>
