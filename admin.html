@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Admin | Telegram Notification System</title>
+    <title>Web Admin | Tattoo Booking Management</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
@@ -11,9 +12,10 @@
     
     <style>
         :root {
-            --primary: #0088cc; /* Telegram Blue */
+            --primary: #0088cc; 
             --sidebar-dark: #17212b;
             --bg-body: #f4f7f9;
+            --success: #10b981;
         }
 
         body { font-family: 'Plus Jakarta Sans', 'Kanit', sans-serif; background-color: var(--bg-body); overflow-x: hidden; }
@@ -39,11 +41,15 @@
         }
         .sidebar.collapsed + .toggle-btn { left: 20px; transform: rotate(180deg); }
 
-        .glass-card { background: white; border-radius: 30px; padding: 25px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        /* UI Elements */
+        .glass-card { background: white; border-radius: 30px; padding: 25px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .nav-link { color: #94a3b8; padding: 12px 20px; border-radius: 15px; text-decoration: none; display: block; margin: 8px 15px; cursor: pointer; transition: 0.3s; }
         .nav-link:hover { color: white; background: rgba(255,255,255,0.1); }
         .nav-link.active { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(0,136,204,0.3); }
 
+        .search-box { border-radius: 15px; border: 1px solid #e2e8f0; padding: 10px 20px; width: 100%; max-width: 400px; }
+        .status-badge { padding: 6px 12px; border-radius: 10px; font-size: 0.8rem; font-weight: 600; }
+        
         .page-section { display: none; }
         .page-section.active { display: block; animation: fadeIn 0.5s; }
 
@@ -58,56 +64,70 @@
 <body>
 
 <div class="d-flex">
-    <nav class="sidebar" id="sidebar">
+    <nav class="sidebar shadow" id="sidebar">
         <div class="p-4 text-white text-center">
             <h4 class="fw-bold"><i class="fab fa-telegram me-2"></i> Admin Panel</h4>
         </div>
         <div class="mt-3">
-            <a class="nav-link active" id="link-dashboard" onclick="showPage('dashboard')"><i class="fas fa-chart-line me-2"></i> ภาพรวมคิว</a>
-            <a class="nav-link" id="link-booking" onclick="showPage('booking')"><i class="fas fa-list me-2"></i> รายชื่อลูกค้า</a>
+            <a class="nav-link active" id="link-dashboard" onclick="showPage('dashboard')"><i class="fas fa-chart-line me-2"></i> ภาพรวมระบบ</a>
+            <a class="nav-link" id="link-booking" onclick="showPage('booking')"><i class="fas fa-list me-2"></i> จัดการคิวจอง</a>
+            <hr class="text-secondary mx-4">
+            <a class="nav-link text-danger" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i> ออกจากระบบ</a>
         </div>
     </nav>
 
     <button class="toggle-btn shadow" onclick="toggleSidebar()" id="btnToggle"><i class="fas fa-chevron-left"></i></button>
 
     <div class="main-content w-100" id="mainContent">
-        <header class="mb-4 d-flex justify-content-between align-items-center">
-            <h2 class="fw-bold" id="pageTitle">ภาพรวมคิว</h2>
-            <div id="connectionStatus"><span class="badge bg-success rounded-pill px-3 py-2"><i class="fas fa-circle me-1 small"></i> Telegram Bot Ready</span></div>
+        <header class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <h2 class="fw-bold mb-0" id="pageTitle">ภาพรวมระบบ</h2>
+            <div id="connectionStatus">
+                <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2 border border-success">
+                    <i class="fas fa-circle me-1 small animate__animated animate__flash animate__infinite"></i> Telegram Bot Ready
+                </span>
+            </div>
         </header>
 
         <section id="dashboard" class="page-section active">
             <div class="row g-4 mb-4">
                 <div class="col-md-6">
                     <div class="glass-card">
-                        <small class="text-muted fw-bold">คิวทั้งหมดในระบบ</small>
+                        <small class="text-muted fw-bold">คิวทั้งหมด</small>
                         <h1 class="display-4 fw-bold mb-0" id="totalCount">0</h1>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="glass-card">
-                        <small class="text-muted fw-bold">รอยืนยัน</small>
+                    <div class="glass-card border-start border-warning border-4">
+                        <small class="text-muted fw-bold">รอยืนยันคิว</small>
                         <h1 class="display-4 fw-bold mb-0 text-warning" id="pendingCount">0</h1>
                     </div>
                 </div>
             </div>
             <div class="glass-card">
-                <h5 class="fw-bold mb-4">สถิติสัปดาห์นี้</h5>
+                <h5 class="fw-bold mb-4">สถิติการจองสัปดาห์นี้</h5>
                 <div style="height: 300px;"><canvas id="bookingChart"></canvas></div>
             </div>
         </section>
 
         <section id="booking" class="page-section">
             <div class="glass-card">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                    <h5 class="fw-bold mb-0">รายชื่อลูกค้าและคิวจอง</h5>
+                    <div class="input-group search-box shadow-sm">
+                        <span class="input-group-text bg-white border-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" id="adminSearchInput" class="form-control border-0" placeholder="ค้นหาชื่อหรือเบอร์โทร..." onkeyup="searchBookings()">
+                    </div>
+                </div>
+                
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="table-light">
                             <tr>
-                                <th>ID ลูกค้า</th>
-                                <th>ชื่อลูกค้า</th>
+                                <th>ข้อมูลลูกค้า</th>
+                                <th>ติดต่อ</th>
                                 <th>วัน-เวลา</th>
                                 <th>สถานะ</th>
-                                <th class="text-end">การจัดการ</th>
+                                <th class="text-end">จัดการ</th>
                             </tr>
                         </thead>
                         <tbody id="adminTableBody"></tbody>
@@ -123,144 +143,187 @@
 
 <script>
     // ---------------------------------------------------------
-    // 1. CONFIG: ใส่ข้อมูล Telegram ของคุณที่นี่
+    // 1. DATA & SECURITY HELPERS
     // ---------------------------------------------------------
-    const TELEGRAM_TOKEN = '8449281474:AAG8jGiuNHPLVbmUJxnOWtLvl_wSiIAEbjc';         // ใส่_TOKEN_ของ_BOT_ตรงนี้
-    const TELEGRAM_CHAT_ID = '8449281474';      // ใส่_CHAT_ID_ของคุณตรงนี้
+    const TELEGRAM_TOKEN = '8449281474:AAG8jGiuNHPLVbmUJxnOWtLvl_wSiIAEbjc';
+    const TELEGRAM_CHAT_ID = '8449281474';
 
-    async function sendTelegramMessage(booking) {
-        if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes('ใส่_TOKEN')) return;
+    const DB = {
+        getUsers: () => JSON.parse(localStorage.getItem('users') || '[]'),
+        getBookings: () => JSON.parse(localStorage.getItem('allBookings') || '[]'),
+        saveBookings: (data) => localStorage.setItem('allBookings', JSON.stringify(data)),
+        getCustomer: (username) => {
+            const users = DB.getUsers();
+            return users.find(u => u.username === username) || { fullname: 'ไม่ระบุชื่อ', phone: '-' };
+        }
+    };
 
-        const text = `🔔 *มีการจองใหม่เข้ามา!*\n` +
-                     `━━━━━━━━━━━━━━━\n` +
-                     `🆔 *ID:* #${booking.id.toString().slice(-4)}\n` +
-                     `👤 *ลูกค้า:* ${booking.name}\n` +
-                     `📅 *วันที่:* ${booking.date}\n` +
-                     `⏰ *เวลา:* ${booking.time} น.\n` +
-                     `📝 *โน้ต:* ${booking.note || '-'}\n` +
-                     `━━━━━━━━━━━━━━━`;
-
-        try {
-            await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: TELEGRAM_CHAT_ID,
-                    text: text,
-                    parse_mode: 'Markdown'
-                })
-            });
-        } catch (err) { console.error("Telegram Error:", err); }
+    // เช็คสิทธิ์การเข้าถึง
+    if (sessionStorage.getItem('currentUser') !== 'admin') {
+        window.location.href = 'login.html';
     }
 
     // ---------------------------------------------------------
-    // 2. REAL-TIME WATCHER
+    // 2. CORE FUNCTIONS
     // ---------------------------------------------------------
-    let currentCount = JSON.parse(localStorage.getItem('allBookings') || '[]').length;
-
-    function watchForNewBookings() {
-        setInterval(() => {
-            const bookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
-            if (bookings.length > currentCount) {
-                const latest = bookings[bookings.length - 1];
-                
-                // แจ้งเตือนในหน้าเว็บ
-                Swal.fire({
-                    title: '🔔 คิวใหม่!',
-                    text: `คุณ ${latest.name} ได้จองเข้ามาแล้ว`,
-                    icon: 'info',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 5000
-                });
-
-                // ส่งเข้า Telegram
-                sendTelegramMessage(latest);
-
-                currentCount = bookings.length;
-                loadBookings();
-            } else if (bookings.length < currentCount) {
-                currentCount = bookings.length;
-                loadBookings();
-            }
-        }, 3000);
-    }
-
-    // ---------------------------------------------------------
-    // 3. UI LOGIC
-    // ---------------------------------------------------------
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const mainContent = document.getElementById('mainContent');
-        sidebar.classList.toggle('collapsed');
-        sidebar.classList.toggle('active'); // สำหรับ Mobile
-        mainContent.classList.toggle('expanded');
-    }
-
-    function showPage(pageId) {
-        document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
-        document.getElementById('link-' + pageId).classList.add('active');
-        document.getElementById('pageTitle').innerText = (pageId === 'dashboard') ? 'ภาพรวมคิว' : 'รายชื่อลูกค้า';
-        if(window.innerWidth < 991) toggleSidebar();
-        loadBookings();
-    }
-
-    function loadBookings() {
-        const bookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
+    function renderAdminTable(dataToDisplay = null) {
+        const bookings = dataToDisplay || DB.getBookings();
+        const tbody = document.getElementById('adminTableBody');
+        
+        // อัปเดตตัวเลข Dashboard
         document.getElementById('totalCount').innerText = bookings.length;
         document.getElementById('pendingCount').innerText = bookings.filter(b => b.status !== 'confirmed').length;
 
-        const tbody = document.getElementById('adminTableBody');
         if (bookings.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">ไม่พบข้อมูลการจอง</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-muted">ไม่พบข้อมูลรายการจอง</td></tr>';
             return;
         }
 
-        tbody.innerHTML = [...bookings].reverse().map(b => `
-            <tr class="animate__animated animate__fadeIn">
-                <td><span class="badge bg-secondary-subtle text-secondary">#${b.id.toString().slice(-4)}</span></td>
-                <td><b>${b.name}</b></td>
-                <td>${b.date}<br><small class="text-primary">${b.time} น.</small></td>
-                <td><span class="badge ${b.status === 'confirmed' ? 'bg-success' : 'bg-warning'}">${b.status === 'confirmed' ? 'ยืนยันแล้ว' : 'รอดำเนินการ'}</span></td>
-                <td class="text-end">
-                    <button class="btn btn-sm text-danger" onclick="deleteItem(${b.id})"><i class="fas fa-trash"></i></button>
-                </td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = [...bookings].reverse().map(b => {
+            const customer = DB.getCustomer(b.createdBy);
+            const statusClass = b.status === 'confirmed' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning';
+            
+            return `
+                <tr class="animate__animated animate__fadeIn">
+                    <td>
+                        <div class="fw-bold">${customer.fullname}</div>
+                        <small class="text-muted">ID: #${b.id.toString().slice(-4)}</small>
+                    </td>
+                    <td>
+                        <a href="tel:${customer.phone}" class="text-decoration-none small">
+                            <i class="fas fa-phone me-1"></i> ${customer.phone}
+                        </a>
+                    </td>
+                    <td>
+                        <div class="small">${b.date}</div>
+                        <div class="fw-bold text-primary small">${b.time} น.</div>
+                    </td>
+                    <td><span class="status-badge ${statusClass}">${b.status === 'confirmed' ? 'ยืนยันแล้ว' : 'รอดำเนินการ'}</span></td>
+                    <td class="text-end">
+                        <div class="btn-group">
+                            ${b.status !== 'confirmed' ? 
+                                `<button onclick="confirmBooking(${b.id})" class="btn btn-sm btn-success shadow-sm me-2"><i class="fas fa-check"></i> ยืนยัน</button>` : ''
+                            }
+                            <button onclick="deleteBooking(${b.id})" class="btn btn-sm btn-outline-danger border-0"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
-    function deleteItem(id) {
-        Swal.fire({ title: 'ลบรายการ?', text: 'ข้อมูลนี้จะหายไปจากระบบ', icon: 'warning', showCancelButton: true }).then(res => {
+    function searchBookings() {
+        const term = document.getElementById('adminSearchInput').value.toLowerCase();
+        const filtered = DB.getBookings().filter(b => {
+            const customer = DB.getCustomer(b.createdBy);
+            return customer.fullname.toLowerCase().includes(term) || 
+                   customer.phone.includes(term) || 
+                   b.createdBy.toLowerCase().includes(term);
+        });
+        renderAdminTable(filtered);
+    }
+
+    function confirmBooking(id) {
+        Swal.fire({
+            title: 'ยืนยันคิวจอง?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'ใช่, ยืนยันคิว',
+            confirmButtonColor: '#10b981'
+        }).then(res => {
             if (res.isConfirmed) {
-                let bookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
-                bookings = bookings.filter(b => b.id !== id);
-                localStorage.setItem('allBookings', JSON.stringify(bookings));
-                loadBookings();
+                let bookings = DB.getBookings();
+                const idx = bookings.findIndex(b => b.id == id);
+                if (idx !== -1) {
+                    bookings[idx].status = 'confirmed';
+                    DB.saveBookings(bookings);
+                    renderAdminTable();
+                    Swal.fire('สำเร็จ!', 'ยืนยันคิวเรียบร้อยแล้ว', 'success');
+                }
+            }
+        });
+    }
+
+    function deleteBooking(id) {
+        Swal.fire({
+            title: 'ลบรายการนี้?',
+            text: 'ข้อมูลจะถูกลบออกจากระบบอย่างถาวร',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'ยืนยันการลบ'
+        }).then(res => {
+            if (res.isConfirmed) {
+                let bookings = DB.getBookings().filter(b => b.id != id);
+                DB.saveBookings(bookings);
+                renderAdminTable();
             }
         });
     }
 
     // ---------------------------------------------------------
-    // 4. CHART INIT
+    // 3. UI & NOTIFICATION
+    // ---------------------------------------------------------
+    function showPage(pageId) {
+        document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        document.getElementById('link-' + pageId).classList.add('active');
+        document.getElementById('pageTitle').innerText = (pageId === 'dashboard') ? 'ภาพรวมระบบ' : 'จัดการคิวจอง';
+        renderAdminTable();
+    }
+
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('collapsed');
+        document.getElementById('mainContent').classList.toggle('expanded');
+    }
+
+    function logout() {
+        sessionStorage.clear();
+        window.location.href = 'login.html';
+    }
+
+    async function sendTelegramNotification(booking) {
+        const customer = DB.getCustomer(booking.createdBy);
+        const text = `🔔 *มีการจองใหม่!*\n👤 ลูกค้า: ${customer.fullname}\n📞 โทร: ${customer.phone}\n📅 วันที่: ${booking.date}\n⏰ เวลา: ${booking.time} น.`;
+        try {
+            await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: text, parse_mode: 'Markdown' })
+            });
+        } catch (e) { console.error("Telegram Error", e); }
+    }
+
+    // เฝ้าดูการจองใหม่
+    let lastCount = DB.getBookings().length;
+    setInterval(() => {
+        const current = DB.getBookings();
+        if (current.length > lastCount) {
+            const newest = current[current.length - 1];
+            sendTelegramNotification(newest);
+            lastCount = current.length;
+            renderAdminTable();
+        }
+    }, 5000);
+
+    // ---------------------------------------------------------
+    // 4. INIT CHART
     // ---------------------------------------------------------
     window.onload = () => {
-        loadBookings();
-        watchForNewBookings();
+        renderAdminTable();
         const ctx = document.getElementById('bookingChart').getContext('2d');
         new Chart(ctx, {
             type: 'line',
             data: {
                 labels: ['จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.', 'อา.'],
                 datasets: [{
-                    label: 'ยอดจอง',
-                    data: [10, 22, 15, 25, 30, 45, 38],
+                    label: 'ยอดจอง (ครั้ง)',
+                    data: [5, 12, 8, 15, 20, 35, 28],
                     borderColor: '#0088cc',
-                    tension: 0.4,
+                    backgroundColor: 'rgba(0, 136, 204, 0.05)',
                     fill: true,
-                    backgroundColor: 'rgba(0, 136, 204, 0.05)'
+                    tension: 0.4
                 }]
             },
             options: { responsive: true, maintainAspectRatio: false }
