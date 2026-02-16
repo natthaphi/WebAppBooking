@@ -13,7 +13,7 @@
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         body {
-            font-family: 'Kanit', sans-serif; /* ปรับให้เข้ากับหน้า Dashboard */
+            font-family: 'Kanit', sans-serif;
             background: #f8fafc;
             background-image: 
                 radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.15) 0px, transparent 50%),
@@ -32,7 +32,7 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.1);
             padding: 40px;
             width: 100%;
-            max-width: 450px;
+            max-width: 480px;
             border: 1px solid rgba(255, 255, 255, 0.4);
         }
         .icon-box {
@@ -66,6 +66,16 @@
             border-color: #764ba2;
             background: white;
         }
+        .input-group-text {
+            border-radius: 15px 0 0 15px !important;
+            background-color: white;
+            border-right: none;
+            color: #94a3b8;
+        }
+        .form-control.with-icon {
+            border-left: none;
+            border-radius: 0 15px 15px 0 !important;
+        }
         .btn-register {
             background: var(--primary-gradient);
             border: none;
@@ -74,14 +84,13 @@
             font-weight: 600;
             color: white;
             width: 100%;
-            margin-top: 15px;
+            margin-top: 20px;
             transition: 0.3s;
             letter-spacing: 0.5px;
         }
         .btn-register:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 20px rgba(118, 75, 162, 0.2);
-            opacity: 0.95;
             color: white;
         }
         .login-link {
@@ -95,9 +104,6 @@
             text-decoration: none;
             font-weight: 600;
         }
-        .login-link a:hover {
-            text-decoration: underline;
-        }
     </style>
 </head>
 <body>
@@ -108,31 +114,43 @@
             <i class="fas fa-user-plus"></i>
         </div>
         <h2 class="fw-bold">สร้างบัญชีใหม่</h2>
-        <p class="text-muted">เข้าร่วมเป็นส่วนหนึ่งกับระบบของเรา</p>
+        <p class="text-muted">กรอกข้อมูลเพื่อเข้าร่วมระบบจองคิว</p>
     </div>
 
     <form id="registerForm">
         <div class="mb-3">
-            <label for="regUser" class="form-label">ชื่อผู้ใช้งาน (Username)</label>
+            <label class="form-label">ชื่อ-นามสกุลจริง</label>
             <div class="input-group">
-                <span class="input-group-text bg-white border-end-0" style="border-radius: 15px 0 0 15px;">
-                    <i class="fas fa-user text-muted"></i>
-                </span>
-                <input type="text" id="regUser" class="form-control border-start-0" style="border-radius: 0 15px 15px 0;" placeholder="ภาษาอังกฤษหรือตัวเลข" required>
+                <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                <input type="text" id="regFullname" class="form-control with-icon" placeholder="เช่น นายสมชาย ใจดี" required>
             </div>
         </div>
 
-        <div class="mb-4">
-            <label for="regPass" class="form-label">รหัสผ่าน (Password)</label>
+        <div class="mb-3">
+            <label class="form-label">เบอร์โทรศัพท์</label>
             <div class="input-group">
-                <span class="input-group-text bg-white border-end-0" style="border-radius: 15px 0 0 15px;">
-                    <i class="fas fa-lock text-muted"></i>
-                </span>
-                <input type="password" id="regPass" class="form-control border-start-0" style="border-radius: 0 15px 15px 0;" placeholder="อย่างน้อย 6 ตัวอักษร" required>
+                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                <input type="tel" id="regPhone" class="form-control with-icon" placeholder="08XXXXXXXX" required>
             </div>
         </div>
 
-        <button type="submit" class="btn btn-register">
+        <div class="mb-3">
+            <label class="form-label">ชื่อผู้ใช้งาน (Username)</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                <input type="text" id="regUser" class="form-control with-icon" placeholder="ภาษาอังกฤษหรือตัวเลข" required>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">รหัสผ่าน (Password)</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                <input type="password" id="regPass" class="form-control with-icon" placeholder="อย่างน้อย 6 ตัวอักษร" required>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-register shadow-sm">
             <i class="fas fa-check-circle me-2"></i> ยืนยันสมัครสมาชิก
         </button>
     </form>
@@ -148,6 +166,9 @@
     document.getElementById('registerForm').addEventListener('submit', (e) => {
         e.preventDefault();
         
+        // รับค่าจากฟอร์ม
+        const fullname = document.getElementById('regFullname').value.trim();
+        const phone = document.getElementById('regPhone').value.trim();
         const user = document.getElementById('regUser').value.trim();
         const pass = document.getElementById('regPass').value;
 
@@ -155,40 +176,46 @@
         if (pass.length < 6) {
             Swal.fire({
                 icon: 'error',
-                title: 'ผิดพลาด',
-                text: 'รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร',
-                confirmButtonColor: '#6366f1'
+                title: 'รหัสผ่านสั้นเกินไป',
+                text: 'กรุณาตั้งรหัสผ่านอย่างน้อย 6 ตัวอักษร',
+                confirmButtonColor: '#764ba2'
             });
             return;
         }
 
-        // 2. ดึงข้อมูลผู้ใช้จาก localStorage
+        // 2. ดึงข้อมูลผู้ใช้เดิมจาก LocalStorage
         const users = JSON.parse(localStorage.getItem('users') || '[]');
         
-        // 3. ตรวจสอบชื่อผู้ใช้งานซ้ำ
-        if (users.find(u => u.username.toLowerCase() === user.toLowerCase())) {
+        // 3. ตรวจสอบ Username ซ้ำ (Case-insensitive)
+        const isDuplicate = users.some(u => u.username.toLowerCase() === user.toLowerCase());
+        if (isDuplicate) {
             Swal.fire({
                 icon: 'warning',
-                title: 'ไม่สามารถใช้ชื่อนี้ได้',
-                text: 'ชื่อผู้ใช้งานนี้มีอยู่ในระบบแล้ว กรุณาใช้ชื่ออื่น',
-                confirmButtonColor: '#6366f1'
+                title: 'ชื่อผู้ใช้งานนี้ถูกใช้แล้ว',
+                text: 'กรุณาเลือกชื่อผู้ใช้งานอื่น',
+                confirmButtonColor: '#764ba2'
             });
             return;
         }
 
-        // 4. บันทึกผู้ใช้ใหม่พร้อมกำหนด Role เริ่มต้น
-        users.push({ 
+        // 4. บันทึกข้อมูลใหม่ลงใน LocalStorage
+        const newUser = { 
             username: user, 
             password: pass, 
-            role: 'user' 
-        });
+            fullname: fullname,
+            phone: phone,
+            role: 'user',
+            registeredAt: new Date().toLocaleString('th-TH')
+        };
+        
+        users.push(newUser);
         localStorage.setItem('users', JSON.stringify(users));
 
-        // 5. แสดงผลสำเร็จและย้ายหน้า
+        // 5. แจ้งผลสำเร็จและย้ายหน้า
         Swal.fire({
             icon: 'success',
             title: 'สมัครสมาชิกสำเร็จ!',
-            text: 'ระบบกำลังนำคุณไปยังหน้าเข้าสู่ระบบ',
+            text: 'ยินดีต้อนรับคุณ ' + fullname,
             timer: 2000,
             showConfirmButton: false,
             willClose: () => {
