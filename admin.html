@@ -117,139 +117,117 @@
         </div>
     </div>
 
-    <script>
-        // --- 1. CONFIG & DB ---
-        const TELEGRAM_TOKEN = '8449281474:AAG8jGiuNHPLVbmUJxnOWtLvl_wSiIAEbjc'; 
-        const TELEGRAM_CHAT_ID = '-1003868893517'; // ใช้ ID กลุ่มที่ขึ้นต้นด้วย -100
+<script>
+    // --- 1. CONFIG ---
+    const TELEGRAM_TOKEN = '8449281474:AAG8jGiuNHPLVbmUJxnOWtLvl_wSiIAEbjc';
+    const TELEGRAM_CHAT_ID = '-1003868893517';
 
-        const DB = {
-            getUsers: () => JSON.parse(localStorage.getItem('users') || '[]'),
-            getBookings: () => JSON.parse(localStorage.getItem('allBookings') || '[]'),
-            saveBookings: (data) => localStorage.setItem('allBookings', JSON.stringify(data)),
-            getCustomer: (username) => {
-                const users = DB.getUsers();
-                const user = users.find(u => u.username === username);
-                return user ? user : { fullname: "ลูกค้าทั่วไป", phone: "ไม่ระบุเบอร์" };
-            }
-        };
+    const DB = {
+        getUsers: () => JSON.parse(localStorage.getItem('users') || '[]'),
+        getBookings: () => JSON.parse(localStorage.getItem('allBookings') || '[]'),
+        saveBookings: (data) => localStorage.setItem('allBookings', JSON.stringify(data)),
+        getCustomer: (username) => {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.username === username);
+            return user ? user : { fullname: "ไม่ระบุชื่อ", phone: "ไม่ระบุเบอร์" };
+        }
+    };
 
-        // --- 2. RENDER TABLE ---
-        function renderAdminTable() {
-            const bookings = DB.getBookings();
-            const tbody = document.getElementById('adminTableBody');
-            tbody.innerHTML = '';
+    // --- 2. RENDER TABLE ---
+    function renderAdminTable() {
+        const bookings = DB.getBookings();
+        const tbody = document.getElementById('adminTableBody');
+        if(!tbody) return;
+        tbody.innerHTML = '';
 
-            document.getElementById('totalBookings').innerText = bookings.length;
-            document.getElementById('pendingBookings').innerText = bookings.filter(b => b.status === 'pending').length;
-            document.getElementById('confirmedBookings').innerText = bookings.filter(b => b.status === 'confirmed').length;
+        // Update Stats
+        document.getElementById('totalBookings').innerText = bookings.length;
+        document.getElementById('pendingBookings').innerText = bookings.filter(b => b.status === 'pending').length;
+        document.getElementById('confirmedBookings').innerText = bookings.filter(b => b.status === 'confirmed').length;
 
-            if (bookings.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4">ไม่มีรายการจองในขณะนี้</td></tr>`;
-                return;
-            }
-
-            [...bookings].reverse().forEach((item, index) => {
-                const customer = DB.getCustomer(item.createdBy);
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>
-                            <div class="fw-bold">${item.name}</div>
-                            <small class="text-muted">User: ${item.createdBy}</small>
-                        </td>
-                        <td>
-                            <div><i class="fa fa-user size-sm me-1 text-secondary"></i> ${customer.fullname}</div>
-                            <div class="small"><i class="fa fa-phone size-sm me-1 text-secondary"></i> ${customer.phone}</div>
-                        </td>
-                        <td>
-                            <div class="fw-semibold">${item.date}</div>
-                            <div class="small text-muted">${item.time} น.</div>
-                        </td>
-                        <td>
-                            <span class="badge badge-status ${item.status === 'confirmed' ? 'bg-success-subtle' : 'bg-warning-subtle'}">
-                                ${item.status === 'confirmed' ? 'ยืนยันแล้ว' : 'รอตรวจสอบ'}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="btn-group">
-                                ${item.status === 'pending' ? 
-                                    `<button class="btn btn-sm btn-success" onclick="updateStatus(${item.id}, 'confirmed')">
-                                        <i class="fa fa-check"></i>
-                                    </button>` : ''
-                                }
-                                <button class="btn btn-sm btn-outline-danger" onclick="deleteBooking(${item.id})">
-                                    <i class="fa fa-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
+        if (bookings.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4">ไม่มีรายการจองในขณะนี้</td></tr>`;
+            return;
         }
 
-        // --- 3. ACTIONS & TELEGRAM ---
-        async function updateStatus(id, newStatus) {
-            let bookings = DB.getBookings();
-            const index = bookings.findIndex(b => b.id === id);
+        [...bookings].reverse().forEach((item, index) => {
+            const customer = DB.getCustomer(item.createdBy);
+            tbody.innerHTML += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>
+                        <div class="fw-bold">${item.name}</div>
+                        <small class="text-muted">Username: ${item.createdBy}</small>
+                    </td>
+                    <td>
+                        <div><i class="fa fa-user me-1 text-secondary"></i> ${customer.fullname}</div>
+                        <div class="small"><i class="fa fa-phone me-1 text-secondary"></i> ${customer.phone}</div>
+                    </td>
+                    <td>
+                        <div class="fw-semibold">${item.date}</div>
+                        <div class="small text-muted">${item.time} น.</div>
+                    </td>
+                    <td>
+                        <span class="badge badge-status ${item.status === 'confirmed' ? 'bg-success text-white' : 'bg-warning text-dark'}" style="padding: 8px 15px; border-radius: 20px;">
+                            ${item.status === 'confirmed' ? 'ยืนยันแล้ว' : 'รอตรวจสอบ'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            ${item.status === 'pending' ? 
+                                `<button class="btn btn-sm btn-success" onclick="updateStatus(${item.id}, 'confirmed')">
+                                    <i class="fa fa-check me-1"></i> อนุมัติ
+                                </button>` : 
+                                `<button class="btn btn-sm btn-secondary" disabled>อนุมัติแล้ว</button>`
+                            }
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteBooking(${item.id})">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    // --- 3. ACTIONS ---
+    async function updateStatus(id, newStatus) {
+        let bookings = DB.getBookings();
+        const index = bookings.findIndex(b => b.id === id);
+        
+        if (index !== -1) {
+            const item = bookings[index];
+            bookings[index].status = newStatus;
+            DB.saveBookings(bookings);
             
-            if (index !== -1) {
-                const item = bookings[index];
-                bookings[index].status = newStatus;
-                DB.saveBookings(bookings);
-                
-                if(newStatus === 'confirmed') {
-                    const message = `✅ *ยืนยันการจองเรียบร้อย*\n` +
-                                    `--------------------------\n` +
-                                    `📋 รายการ: ${item.name}\n` +
-                                    `📅 วันที่: ${item.date}\n` +
-                                    `⏰ เวลา: ${item.time} น.\n` +
-                                    `👤 ผู้จอง: ${item.createdBy}\n` +
-                                    `--------------------------\n` +
-                                    `จัดการโดย: Admin Panel`;
+            // แจ้งเตือน Telegram เมื่อแอดมินกดอนุมัติ
+            if(newStatus === 'confirmed') {
+                const message = `✅ *ยืนยันการจองเรียบร้อย*\n` +
+                                `📋 รายการ: ${item.name}\n` +
+                                `👤 ผู้จอง: ${item.createdBy}\n` +
+                                `📅 วันที่: ${item.date}\n` +
+                                `⏰ เวลา: ${item.time} น.\n` +
+                                `Admin ได้ทำการตรวจสอบและยืนยันแล้วครับ`;
 
-                    try {
-                        await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'Markdown' })
-                        });
-                    } catch (e) { console.error("Telegram Error", e); }
-                }
-                
-                Swal.fire({ icon: 'success', title: 'ยืนยันสำเร็จ', timer: 1000, showConfirmButton: false });
-                renderAdminTable();
+                try {
+                    await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'Markdown' })
+                    });
+                } catch (e) { console.error("Telegram Error", e); }
             }
+            
+            Swal.fire({ icon: 'success', title: 'ยืนยันสำเร็จ', timer: 1000, showConfirmButton: false });
+            renderAdminTable();
         }
+    }
 
-        function deleteBooking(id) {
-            Swal.fire({
-                title: 'ยืนยันการลบ?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'ใช่, ลบเลย'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    let bookings = DB.getBookings();
-                    bookings = bookings.filter(b => b.id !== id);
-                    DB.saveBookings(bookings);
-                    renderAdminTable();
-                }
-            });
-        }
+    // ฟังก์ชันเช็คข้อมูลใหม่ทุก 10 วินาที
+    setInterval(renderAdminTable, 10000);
 
-        function logout() {
-            sessionStorage.clear();
-            window.location.href = 'login.html';
-        }
+    window.onload = renderAdminTable;
+</script>
 
-        // --- 4. INIT ---
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('liveTime').innerText = now.toLocaleTimeString('th-TH') + " | " + now.toLocaleDateString('th-TH');
-        }, 1000);
-
-        window.onload = renderAdminTable;
-    </script>
 </body>
 </html>
