@@ -39,10 +39,6 @@
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
         .badge-status { border-radius: 50px; padding: 5px 12px; font-weight: 500; }
-        .filter-section {
-            background: #fff; padding: 15px; border-radius: 15px; margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
     </style>
 </head>
 <body>
@@ -62,9 +58,10 @@
     <div class="main-content">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="fw-bold">ภาพรวมระบบ <small class="text-muted fs-6">Management Overview</small></h3>
+            <div id="liveTime" class="text-muted"></div>
         </div>
 
-        <div class="row g-4 mb-4">
+        <div class="row g-4 mb-5">
             <div class="col-md-4">
                 <div class="stat-card">
                     <small class="text-muted">รายการจองทั้งหมด</small>
@@ -81,19 +78,6 @@
                 <div class="stat-card">
                     <small class="text-muted">ยืนยันแล้ว</small>
                     <h2 class="fw-bold mb-0 text-success" id="confirmedBookings">0</h2>
-                </div>
-            </div>
-        </div>
-
-        <div class="filter-section animate__animated animate__fadeIn">
-            <div class="row align-items-center">
-                <div class="col-md-4">
-                    <label class="small text-muted mb-1">กรองข้อมูลตามวันที่</label>
-                    <input type="date" id="filterDate" class="form-control form-control-sm" onchange="renderAdminTable()">
-                </div>
-                <div class="col-md-2">
-                    <label class="d-block mb-1">&nbsp;</label>
-                    <button onclick="clearFilter()" class="btn btn-sm btn-outline-secondary w-100">ล้างตัวกรอง</button>
                 </div>
             </div>
         </div>
@@ -122,9 +106,9 @@
     </div>
 
 <script>
-    if (!sessionStorage.getItem('currentUser')) {
-        window.location.href = 'login.html';
-    }
+    // --- 1. SECURITY & CONFIG ---
+    // ตรวจสอบสถานะ Login (ถ้าใช้ระบบ session)
+    // if (!sessionStorage.getItem('isLoggedIn')) { window.location.href = 'login.html'; }
 
     const TELEGRAM_TOKEN = '8449281474:AAG8jGiuNHPLVbmUJxnOWtLvl_wSiIAEbjc';
     const TELEGRAM_CHAT_ID = '-1003868893517';
@@ -134,27 +118,21 @@
         saveBookings: (data) => localStorage.setItem('allBookings', JSON.stringify(data)),
         getCustomer: (username) => {
             const users = JSON.parse(localStorage.getItem('users') || '[]');
-            return users.find(u => u.username === username) || { fullname: "ทั่วไป", phone: "-" };
+            return users.find(u => u.username === username) || { fullname: username, phone: "-" };
         }
     };
 
+    // --- 2. RENDER FUNCTION ---
     function renderAdminTable() {
-        let bookings = DB.getBookings();
-        const filterDate = document.getElementById('filterDate').value;
+        const bookings = DB.getBookings();
         const tbody = document.getElementById('adminTableBody');
         
-        // กรองข้อมูลตามวันที่เลือก
-        if (filterDate) {
-            bookings = bookings.filter(b => b.date === filterDate);
-        }
-
-        // Update Summary Stats
         document.getElementById('totalBookings').innerText = bookings.length;
         document.getElementById('pendingBookings').innerText = bookings.filter(b => b.status === 'pending').length;
         document.getElementById('confirmedBookings').innerText = bookings.filter(b => b.status === 'confirmed').length;
 
         if (bookings.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูลการจอง</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4">ไม่มีรายการข้อมูล</td></tr>`;
             return;
         }
 
@@ -168,13 +146,10 @@
                         <small class="text-muted">ID: ${item.id}</small>
                     </td>
                     <td>
-                        <div class="fw-500">${customer.fullname}</div>
-                        <small class="text-muted"><i class="fa fa-phone me-1"></i>${customer.phone}</small>
+                        <div>${customer.fullname}</div>
+                        <small class="text-muted">${customer.phone}</small>
                     </td>
-                    <td>
-                        <div class="small fw-bold">${item.date}</div>
-                        <div class="small text-primary">${item.time} น.</div>
-                    </td>
+                    <td>${item.date}<br><small>${item.time} น.</small></td>
                     <td>
                         <span class="badge badge-status ${item.status === 'confirmed' ? 'bg-success' : 'bg-warning text-dark'}">
                             ${item.status === 'confirmed' ? 'ยืนยันแล้ว' : 'รอตรวจสอบ'}
@@ -183,8 +158,8 @@
                     <td>
                         <div class="btn-group">
                             ${item.status === 'pending' ? 
-                                `<button class="btn btn-sm btn-success px-3" onclick="updateStatus(${item.id}, 'confirmed')">อนุมัติ</button>` : 
-                                `<button class="btn btn-sm btn-light text-success" disabled><i class="fa fa-check-circle"></i></button>`
+                                `<button class="btn btn-sm btn-success" onclick="updateStatus(${item.id}, 'confirmed')">อนุมัติ</button>` : 
+                                `<button class="btn btn-sm btn-secondary" disabled>เรียบร้อย</button>`
                             }
                             <button class="btn btn-sm btn-outline-danger" onclick="deleteBooking(${item.id})"><i class="fa fa-trash"></i></button>
                         </div>
@@ -194,6 +169,7 @@
         }).join('');
     }
 
+    // --- 3. ACTIONS ---
     async function updateStatus(id, newStatus) {
         let bookings = DB.getBookings();
         const index = bookings.findIndex(b => b.id === id);
@@ -202,20 +178,17 @@
             const item = bookings[index];
             const customer = DB.getCustomer(item.createdBy);
             
-            // 1. อัปเดตสถานะในระบบ (LocalStorage)
-            item.status = newStatus;
+            bookings[index].status = newStatus;
             DB.saveBookings(bookings);
 
-            // 2. เตรียมข้อความแจ้งเตือนตามรูปแบบที่คุณกำหนด
-            const message = 
-                `✅ *ยืนยันการจองเรียบร้อย*\n` +
-                `📋 *รายการ:* ${item.name}\n` +
-                `👤 *ผู้จอง:* ${customer.fullname}\n` +
-                `📅 *วันที่:* ${item.date}\n` +
-                `⏰ *เวลา:* ${item.time} น.\n` +
-                `Admin ได้ทำการตรวจสอบและยืนยันแล้ว`;
+            // แจ้งเตือน Telegram
+            const message = `✅ *ยืนยันการจองเรียบร้อย*\n` +
+                            `📋 รายการ: ${item.name}\n` +
+                            `👤 ผู้จอง: ${customer.fullname}\n` +
+                            `📅 วันที่: ${item.date}\n` +
+                            `⏰ เวลา: ${item.time} น.\n` +
+                            `Admin ได้ทำการตรวจสอบและยืนยันแล้วครับ`;
 
-            // 3. ส่งข้อมูลเข้า Telegram
             try {
                 await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
                     method: 'POST',
@@ -223,66 +196,49 @@
                     body: JSON.stringify({ 
                         chat_id: TELEGRAM_CHAT_ID, 
                         text: message, 
-                        parse_mode: 'Markdown',
-                        reply_markup: {
-                            inline_keyboard: [[
-                                { text: "📞 โทรติดต่อลูกค้า", url: `tel:${customer.phone}` }
-                            ]]
-                        }
+                        parse_mode: 'Markdown' 
                     })
                 });
-            } catch (error) {
-                console.error("Telegram Error:", error);
-            }
+            } catch (e) { console.error("Error sending Telegram", e); }
 
-            // 4. แสดงการแจ้งเตือนบนหน้าเว็บ Admin
-            Swal.fire({ 
-                icon: 'success', 
-                title: 'ยืนยันการจองเรียบร้อย', 
-                text: 'ส่งข้อมูลการยืนยันเข้า Telegram แล้ว',
-                timer: 2000, 
-                showConfirmButton: false,
-                showClass: { popup: 'animate__animated animate__fadeInDown' }
-            });
-
-            // 5. รีเฟรชตารางหน้าจอ
+            Swal.fire({ icon: 'success', title: 'ยืนยันเรียบร้อย', timer: 1500, showConfirmButton: false });
             renderAdminTable();
         }
     }
 
-
     function deleteBooking(id) {
         Swal.fire({
-            title: 'ยืนยันการลบ?',
+            title: 'ลบรายการนี้?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'ลบข้อมูล',
+            confirmButtonText: 'ลบ',
             cancelButtonText: 'ยกเลิก'
         }).then((result) => {
             if (result.isConfirmed) {
                 let bookings = DB.getBookings().filter(b => b.id !== id);
                 DB.saveBookings(bookings);
                 renderAdminTable();
-                Swal.fire('ลบสำเร็จ!', '', 'success');
             }
         });
     }
 
-    function clearFilter() {
-        document.getElementById('filterDate').value = '';
-        renderAdminTable();
-    }
-
+    // --- 4. LOGOUT FUNCTION ---
     function logout() {
         Swal.fire({
             title: 'ยืนยันการออกจากระบบ?',
+            text: "คุณจะต้องเข้าสู่ระบบใหม่อีกครั้ง",
             icon: 'question',
             showCancelButton: true,
-            confirmButtonText: 'ออกจากระบบ',
+            confirmButtonColor: '#6366f1',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'ใช่, ออกจากระบบ',
             cancelButtonText: 'ยกเลิก'
         }).then((result) => {
             if (result.isConfirmed) {
-                sessionStorage.clear();
+                // หากมีการเก็บข้อมูล session ให้เคลียร์ที่นี่
+                sessionStorage.clear(); 
+                localStorage.removeItem('isLoggedIn'); // ตัวอย่างการลบสถานะ Login
+                
                 window.location.href = 'login.html';
             }
         });
@@ -290,6 +246,5 @@
 
     window.onload = renderAdminTable;
 </script>
-
 </body>
 </html>
