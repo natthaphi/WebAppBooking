@@ -1,0 +1,8 @@
+{
+  "name": "webbookingpro",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "@netlify/neon": "^0.1.2"
+  }
+}
