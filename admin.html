@@ -202,18 +202,20 @@
             const item = bookings[index];
             const customer = DB.getCustomer(item.createdBy);
             
+            // 1. อัปเดตสถานะในระบบ (LocalStorage)
             item.status = newStatus;
             DB.saveBookings(bookings);
 
-            // --- ข้อความ Telegram แบบใหม่ที่คุณต้องการ ---
+            // 2. เตรียมข้อความแจ้งเตือนตามรูปแบบที่คุณกำหนด
             const message = 
                 `✅ *ยืนยันการจองเรียบร้อย*\n` +
                 `📋 *รายการ:* ${item.name}\n` +
                 `👤 *ผู้จอง:* ${customer.fullname}\n` +
                 `📅 *วันที่:* ${item.date}\n` +
-                `⏰ *เวลา:* ${item.time} น.\n\n` +
-                `Admin ได้ทำการตรวจสอบและยืนยันแล้วครับ`;
+                `⏰ *เวลา:* ${item.time} น.\n` +
+                `Admin ได้ทำการตรวจสอบและยืนยันแล้ว`;
 
+            // 3. ส่งข้อมูลเข้า Telegram
             try {
                 await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
                     method: 'POST',
@@ -224,7 +226,7 @@
                         parse_mode: 'Markdown',
                         reply_markup: {
                             inline_keyboard: [[
-                                { text: "📞 โทรหาลูกค้า", url: `tel:${customer.phone}` }
+                                { text: "📞 โทรติดต่อลูกค้า", url: `tel:${customer.phone}` }
                             ]]
                         }
                     })
@@ -233,16 +235,21 @@
                 console.error("Telegram Error:", error);
             }
 
+            // 4. แสดงการแจ้งเตือนบนหน้าเว็บ Admin
             Swal.fire({ 
                 icon: 'success', 
-                title: 'ยืนยันสำเร็จ', 
-                text: 'ระบบส่งข้อความเข้า Telegram แล้ว',
-                timer: 1500, 
-                showConfirmButton: false 
+                title: 'ยืนยันการจองเรียบร้อย', 
+                text: 'ส่งข้อมูลการยืนยันเข้า Telegram แล้ว',
+                timer: 2000, 
+                showConfirmButton: false,
+                showClass: { popup: 'animate__animated animate__fadeInDown' }
             });
+
+            // 5. รีเฟรชตารางหน้าจอ
             renderAdminTable();
         }
     }
+
 
     function deleteBooking(id) {
         Swal.fire({
