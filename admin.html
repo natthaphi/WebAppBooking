@@ -39,6 +39,10 @@
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
         .badge-status { border-radius: 50px; padding: 5px 12px; font-weight: 500; }
+        .filter-section {
+            background: #fff; padding: 15px; border-radius: 15px; margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
     </style>
 </head>
 <body>
@@ -60,7 +64,7 @@
             <h3 class="fw-bold">ภาพรวมระบบ <small class="text-muted fs-6">Management Overview</small></h3>
         </div>
 
-        <div class="row g-4 mb-5">
+        <div class="row g-4 mb-4">
             <div class="col-md-4">
                 <div class="stat-card">
                     <small class="text-muted">รายการจองทั้งหมด</small>
@@ -77,6 +81,19 @@
                 <div class="stat-card">
                     <small class="text-muted">ยืนยันแล้ว</small>
                     <h2 class="fw-bold mb-0 text-success" id="confirmedBookings">0</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-section animate__animated animate__fadeIn">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <label class="small text-muted mb-1">กรองข้อมูลตามวันที่</label>
+                    <input type="date" id="filterDate" class="form-control form-control-sm" onchange="renderAdminTable()">
+                </div>
+                <div class="col-md-2">
+                    <label class="d-block mb-1">&nbsp;</label>
+                    <button onclick="clearFilter()" class="btn btn-sm btn-outline-secondary w-100">ล้างตัวกรอง</button>
                 </div>
             </div>
         </div>
@@ -105,13 +122,10 @@
     </div>
 
 <script>
-    // --- 1. SESSION CHECK (Security) ---
-    // ตรวจสอบว่าได้ Login หรือไม่ ถ้าไม่มีให้ดีดไปหน้า login.html ทันที
     if (!sessionStorage.getItem('currentUser')) {
         window.location.href = 'login.html';
     }
 
-    // --- 2. CONFIG ---
     const TELEGRAM_TOKEN = '8449281474:AAG8jGiuNHPLVbmUJxnOWtLvl_wSiIAEbjc';
     const TELEGRAM_CHAT_ID = '-1003868893517';
 
@@ -124,18 +138,23 @@
         }
     };
 
-    // --- 3. RENDER FUNCTION ---
     function renderAdminTable() {
-        const bookings = DB.getBookings();
+        let bookings = DB.getBookings();
+        const filterDate = document.getElementById('filterDate').value;
         const tbody = document.getElementById('adminTableBody');
         
+        // กรองข้อมูลตามวันที่เลือก
+        if (filterDate) {
+            bookings = bookings.filter(b => b.date === filterDate);
+        }
+
         // Update Summary Stats
         document.getElementById('totalBookings').innerText = bookings.length;
         document.getElementById('pendingBookings').innerText = bookings.filter(b => b.status === 'pending').length;
         document.getElementById('confirmedBookings').innerText = bookings.filter(b => b.status === 'confirmed').length;
 
         if (bookings.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4">ไม่มีรายการข้อมูล</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูลการจอง</td></tr>`;
             return;
         }
 
@@ -149,10 +168,13 @@
                         <small class="text-muted">ID: ${item.id}</small>
                     </td>
                     <td>
-                        <div>${customer.fullname}</div>
-                        <small class="text-muted">${customer.phone}</small>
+                        <div class="fw-500">${customer.fullname}</div>
+                        <small class="text-muted"><i class="fa fa-phone me-1"></i>${customer.phone}</small>
                     </td>
-                    <td>${item.date}<br><small>${item.time} น.</small></td>
+                    <td>
+                        <div class="small fw-bold">${item.date}</div>
+                        <div class="small text-primary">${item.time} น.</div>
+                    </td>
                     <td>
                         <span class="badge badge-status ${item.status === 'confirmed' ? 'bg-success' : 'bg-warning text-dark'}">
                             ${item.status === 'confirmed' ? 'ยืนยันแล้ว' : 'รอตรวจสอบ'}
@@ -161,8 +183,8 @@
                     <td>
                         <div class="btn-group">
                             ${item.status === 'pending' ? 
-                                `<button class="btn btn-sm btn-success" onclick="updateStatus(${item.id}, 'confirmed')">อนุมัติ</button>` : 
-                                `<button class="btn btn-sm btn-secondary" disabled>เรียบร้อย</button>`
+                                `<button class="btn btn-sm btn-success px-3" onclick="updateStatus(${item.id}, 'confirmed')">อนุมัติ</button>` : 
+                                `<button class="btn btn-sm btn-light text-success" disabled><i class="fa fa-check-circle"></i></button>`
                             }
                             <button class="btn btn-sm btn-outline-danger" onclick="deleteBooking(${item.id})"><i class="fa fa-trash"></i></button>
                         </div>
@@ -172,23 +194,52 @@
         }).join('');
     }
 
-    // --- 4. ACTIONS ---
     async function updateStatus(id, newStatus) {
         let bookings = DB.getBookings();
         const index = bookings.findIndex(b => b.id === id);
+        
         if (index !== -1) {
-            bookings[index].status = newStatus;
+            const item = bookings[index];
+            const customer = DB.getCustomer(item.createdBy);
+            
+            item.status = newStatus;
             DB.saveBookings(bookings);
 
-            // แจ้งเตือน Telegram
-            const message = `✅ *ยืนยันการจองเรียบร้อย*\n📌 รายการ: ${bookings[index].name}\n👤 ผู้จอง: ${bookings[index].createdBy}`;
-            await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'Markdown' })
-            });
+            // --- ข้อความ Telegram แบบใหม่ที่คุณต้องการ ---
+            const message = 
+                `✅ *ยืนยันการจองเรียบร้อย*\n` +
+                `📋 *รายการ:* ${item.name}\n` +
+                `👤 *ผู้จอง:* ${customer.fullname}\n` +
+                `📅 *วันที่:* ${item.date}\n` +
+                `⏰ *เวลา:* ${item.time} น.\n\n` +
+                `Admin ได้ทำการตรวจสอบและยืนยันแล้วครับ`;
 
-            Swal.fire({ icon: 'success', title: 'อนุมัติเรียบร้อย', timer: 1000, showConfirmButton: false });
+            try {
+                await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        chat_id: TELEGRAM_CHAT_ID, 
+                        text: message, 
+                        parse_mode: 'Markdown',
+                        reply_markup: {
+                            inline_keyboard: [[
+                                { text: "📞 โทรหาลูกค้า", url: `tel:${customer.phone}` }
+                            ]]
+                        }
+                    })
+                });
+            } catch (error) {
+                console.error("Telegram Error:", error);
+            }
+
+            Swal.fire({ 
+                icon: 'success', 
+                title: 'ยืนยันสำเร็จ', 
+                text: 'ระบบส่งข้อความเข้า Telegram แล้ว',
+                timer: 1500, 
+                showConfirmButton: false 
+            });
             renderAdminTable();
         }
     }
@@ -210,21 +261,22 @@
         });
     }
 
-    // --- 5. LOGOUT (จุดที่แก้ไข) ---
+    function clearFilter() {
+        document.getElementById('filterDate').value = '';
+        renderAdminTable();
+    }
+
     function logout() {
         Swal.fire({
             title: 'ยืนยันการออกจากระบบ?',
-            text: "ข้อมูลเซสชันจะถูกล้างเพื่อความปลอดภัย",
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#6366f1',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'ใช่, ออกจากระบบ',
+            confirmButtonText: 'ออกจากระบบ',
             cancelButtonText: 'ยกเลิก'
         }).then((result) => {
             if (result.isConfirmed) {
-                sessionStorage.clear(); // ล้างข้อมูล Session ทั้งหมด
-                window.location.href = 'login.html'; // ส่งกลับหน้า Login
+                sessionStorage.clear();
+                window.location.href = 'login.html';
             }
         });
     }
