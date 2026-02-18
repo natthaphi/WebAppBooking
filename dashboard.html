@@ -116,6 +116,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="db.js"></script>
     
 <script>
     const TELEGRAM_TOKEN = '8449281474:AAG8jGiuNHPLVbmUJxnOWtLvl_wSiIAEbjc';
@@ -123,12 +124,15 @@
 
     const currentUser = sessionStorage.getItem('currentUser');
     if (!currentUser) window.location.href = 'login.html';
-    document.getElementById('userName').innerText = currentUser;
+
+    // ส่วนที่ใหม่: ดึงชื่อจริงจากข้อมูล User
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const userProfile = users.find(u => u.username === currentUser);
+    document.getElementById('userName').innerText = userProfile ? userProfile.fullname : currentUser;
 
     const modalElement = document.getElementById('bookingModal');
     const bookingModal = new bootstrap.Modal(modalElement);
 
-    // --- ฟังก์ชันเปิด Modal สำหรับจองใหม่ ---
     function openBookingModal() {
         document.getElementById('bookingForm').reset();
         document.getElementById('bookId').value = '';
@@ -136,7 +140,6 @@
         bookingModal.show();
     }
 
-    // --- ฟังก์ชันแก้ไขข้อมูล ---
     function editBooking(id) {
         let allBookings = JSON.parse(localStorage.getItem('allBookings') || '[]');
         const item = allBookings.find(b => b.id == id);
@@ -151,7 +154,6 @@
         }
     }
 
-    // --- ฟังก์ชันลบข้อมูล ---
     function deleteBooking(id) {
         Swal.fire({
             title: 'ยืนยันการลบ?',
@@ -173,7 +175,6 @@
         });
     }
 
-    // --- ฟังก์ชันออกจากระบบ ---
     function confirmLogout() {
         sessionStorage.removeItem('currentUser');
         window.location.href = 'login.html';
@@ -189,7 +190,6 @@
             return;
         }
 
-        // เรียงจากใหม่ไปเก่า
         const sorted = [...myBookings].sort((a, b) => b.id - a.id);
 
         tbody.innerHTML = sorted.map((item, index) => `
@@ -208,8 +208,10 @@
                     </span>
                 </td>
                 <td class="text-center">
-                    <button class="btn btn-sm btn-outline-info border-0 me-1" onclick="editBooking(${item.id})"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteBooking(${item.id})"><i class="fas fa-trash"></i></button>
+                    ${item.status === 'pending' ? `
+                        <button class="btn btn-sm btn-outline-info border-0 me-1" onclick="editBooking(${item.id})"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteBooking(${item.id})"><i class="fas fa-trash"></i></button>
+                    ` : `<span class="badge bg-light text-muted fw-normal">ล็อกข้อมูลแล้ว</span>`}
                 </td>
             </tr>
         `).join('');
@@ -240,12 +242,12 @@
         } else {
             allBookings.push(bookingData);
             
-            // ส่งแจ้งเตือน Telegram
+            // ส่งแจ้งเตือน Telegram (ใช้ชื่อจริงในการแจ้ง)
             const message = `🙏 *มีการแจ้งจองใหม่!*\n` +
                             `📌 รายการ: ${bookingData.name}\n` +
                             `📅 วันที่: ${bookingData.date}\n` +
                             `⏰ เวลา: ${bookingData.time} น.\n` +
-                            `👤 ผู้จอง: ${bookingData.createdBy}`;
+                            `👤 ผู้จอง: ${userProfile ? userProfile.fullname : currentUser}`;
 
             try {
                 await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
@@ -264,7 +266,6 @@
         renderTable();
     };
 
-    // โหลดตารางเมื่อเปิดหน้าเว็บ
     renderTable();
 </script>
 
