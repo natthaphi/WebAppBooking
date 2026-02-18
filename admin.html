@@ -4,40 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web Admin | ระบบจัดการการจอง</title>
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
     <style>
-        :root {
-            --primary: #6366f1; 
-            --sidebar-dark: #1e293b;
-            --bg-body: #f8fafc;
-        }
+        :root { --primary: #6366f1; --sidebar-dark: #1e293b; --bg-body: #f8fafc; }
         body { font-family: 'Plus Jakarta Sans', 'Kanit', sans-serif; background-color: var(--bg-body); margin: 0; }
-        .sidebar {
-            width: 260px; height: 100vh; background: var(--sidebar-dark);
-            position: fixed; color: white; padding: 20px;
-        }
+        .sidebar { width: 260px; height: 100vh; background: var(--sidebar-dark); position: fixed; color: white; padding: 20px; }
         .main-content { margin-left: 260px; padding: 40px; }
-        .nav-link-custom {
-            color: #94a3b8; padding: 12px 15px; border-radius: 10px;
-            display: block; text-decoration: none; transition: 0.3s; margin-bottom: 5px;
-        }
-        .nav-link-custom:hover, .nav-link-custom.active {
-            background: rgba(255,255,255,0.1); color: white;
-        }
-        .stat-card {
-            background: white; border-radius: 20px; padding: 25px;
-            border: none; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-        }
-        .table-container {
-            background: white; border-radius: 20px; padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
+        .nav-link-custom { color: #94a3b8; padding: 12px 15px; border-radius: 10px; display: block; text-decoration: none; transition: 0.3s; margin-bottom: 5px; }
+        .nav-link-custom:hover, .nav-link-custom.active { background: rgba(255,255,255,0.1); color: white; }
+        .stat-card { background: white; border-radius: 20px; padding: 25px; border: none; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .table-container { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         .badge-status { border-radius: 50px; padding: 5px 12px; font-weight: 500; }
     </style>
 </head>
@@ -58,34 +38,33 @@
     <div class="main-content">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="fw-bold">ภาพรวมระบบ <small class="text-muted fs-6">Management Overview</small></h3>
-            <div id="liveTime" class="text-muted"></div>
         </div>
 
         <div class="row g-4 mb-5">
             <div class="col-md-4">
-                <div class="stat-card">
+                <div class="stat-card animate__animated animate__fadeIn">
                     <small class="text-muted">รายการจองทั้งหมด</small>
                     <h2 class="fw-bold mb-0" id="totalBookings">0</h2>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="stat-card">
+                <div class="stat-card animate__animated animate__fadeIn" style="animation-delay: 0.1s">
                     <small class="text-muted">รอตรวจสอบ</small>
                     <h2 class="fw-bold mb-0 text-warning" id="pendingBookings">0</h2>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="stat-card">
+                <div class="stat-card animate__animated animate__fadeIn" style="animation-delay: 0.2s">
                     <small class="text-muted">ยืนยันแล้ว</small>
                     <h2 class="fw-bold mb-0 text-success" id="confirmedBookings">0</h2>
                 </div>
             </div>
         </div>
 
-        <div class="table-container animate__animated animate__fadeIn">
+        <div class="table-container animate__animated animate__fadeInUp">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="fw-bold mb-0"><i class="fa fa-list me-2"></i>รายการคำขอจองล่าสุด</h5>
-                <button onclick="renderAdminTable()" class="btn btn-sm btn-light"><i class="fa fa-sync"></i> รีเฟรช</button>
+                <button onclick="renderAdminTable()" class="btn btn-sm btn-light border"><i class="fa fa-sync me-1"></i> รีเฟรช</button>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
@@ -93,7 +72,7 @@
                         <tr>
                             <th>ลำดับ</th>
                             <th>ข้อมูลจอง</th>
-                            <th>ผู้จอง</th>
+                            <th>ผู้จอง (ชื่อจริง/เบอร์โทร)</th>
                             <th>วัน-เวลา</th>
                             <th>สถานะ</th>
                             <th>จัดการ</th>
@@ -107,8 +86,9 @@
 
 <script>
     // --- 1. SECURITY & CONFIG ---
-    // ตรวจสอบสถานะ Login (ถ้าใช้ระบบ session)
-    // if (!sessionStorage.getItem('isLoggedIn')) { window.location.href = 'login.html'; }
+    if (!sessionStorage.getItem('currentUser')) {
+        window.location.href = 'login.html';
+    }
 
     const TELEGRAM_TOKEN = '8449281474:AAG8jGiuNHPLVbmUJxnOWtLvl_wSiIAEbjc';
     const TELEGRAM_CHAT_ID = '-1003868893517';
@@ -118,50 +98,58 @@
         saveBookings: (data) => localStorage.setItem('allBookings', JSON.stringify(data)),
         getCustomer: (username) => {
             const users = JSON.parse(localStorage.getItem('users') || '[]');
+            // ค้นหาข้อมูลผู้ใช้เพื่อดึงชื่อจริงและเบอร์โทรมาโชว์ที่หน้า Admin
             return users.find(u => u.username === username) || { fullname: username, phone: "-" };
         }
     };
 
-    // --- 2. RENDER FUNCTION ---
+    // --- 2. RENDER TABLE ---
     function renderAdminTable() {
         const bookings = DB.getBookings();
         const tbody = document.getElementById('adminTableBody');
         
+        // อัปเดตตัวเลข Dashboard
         document.getElementById('totalBookings').innerText = bookings.length;
         document.getElementById('pendingBookings').innerText = bookings.filter(b => b.status === 'pending').length;
         document.getElementById('confirmedBookings').innerText = bookings.filter(b => b.status === 'confirmed').length;
 
         if (bookings.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4">ไม่มีรายการข้อมูล</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">ยังไม่มีข้อมูลการจองในระบบ</td></tr>`;
             return;
         }
 
-        tbody.innerHTML = [...bookings].reverse().map((item, index) => {
+        // เรียงจากใหม่ไปเก่า
+        const sorted = [...bookings].reverse();
+
+        tbody.innerHTML = sorted.map((item, index) => {
             const customer = DB.getCustomer(item.createdBy);
             return `
-                <tr>
-                    <td>${index + 1}</td>
+                <tr class="animate__animated animate__fadeIn">
+                    <td class="text-secondary small">${index + 1}</td>
                     <td>
-                        <div class="fw-bold">${item.name}</div>
-                        <small class="text-muted">ID: ${item.id}</small>
+                        <div class="fw-bold text-dark">${item.name}</div>
+                        <div style="font-size: 11px" class="text-muted">ID: ${item.id}</div>
                     </td>
                     <td>
-                        <div>${customer.fullname}</div>
-                        <small class="text-muted">${customer.phone}</small>
+                        <div class="fw-semibold text-primary"><i class="fas fa-user-circle me-1"></i>${customer.fullname}</div>
+                        <div class="small text-muted"><i class="fas fa-phone me-1"></i>${customer.phone}</div>
                     </td>
-                    <td>${item.date}<br><small>${item.time} น.</small></td>
                     <td>
-                        <span class="badge badge-status ${item.status === 'confirmed' ? 'bg-success' : 'bg-warning text-dark'}">
-                            ${item.status === 'confirmed' ? 'ยืนยันแล้ว' : 'รอตรวจสอบ'}
+                        <div class="fw-bold text-dark">${item.date}</div>
+                        <div class="small text-muted">${item.time} น.</div>
+                    </td>
+                    <td>
+                        <span class="badge badge-status ${item.status === 'confirmed' ? 'bg-success text-white' : 'bg-warning text-dark'}">
+                            ${item.status === 'confirmed' ? '<i class="fa fa-check-circle me-1"></i>ยืนยันแล้ว' : '<i class="fa fa-clock me-1"></i>รอตรวจสอบ'}
                         </span>
                     </td>
                     <td>
                         <div class="btn-group">
                             ${item.status === 'pending' ? 
-                                `<button class="btn btn-sm btn-success" onclick="updateStatus(${item.id}, 'confirmed')">อนุมัติ</button>` : 
-                                `<button class="btn btn-sm btn-secondary" disabled>เรียบร้อย</button>`
+                                `<button class="btn btn-sm btn-success px-3" onclick="updateStatus(${item.id}, 'confirmed')">อนุมัติคิว</button>` : 
+                                `<button class="btn btn-sm btn-outline-secondary" disabled>อนุมัติแล้ว</button>`
                             }
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteBooking(${item.id})"><i class="fa fa-trash"></i></button>
+                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteBooking(${item.id})"><i class="fa fa-trash"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -175,73 +163,61 @@
         const index = bookings.findIndex(b => b.id === id);
         
         if (index !== -1) {
-            const item = bookings[index];
-            const customer = DB.getCustomer(item.createdBy);
-            
             bookings[index].status = newStatus;
             DB.saveBookings(bookings);
 
-            // แจ้งเตือน Telegram
-            const message = `✅ *ยืนยันการจองเรียบร้อย*\n` +
-                            `📋 รายการ: ${item.name}\n` +
+            const customer = DB.getCustomer(bookings[index].createdBy);
+
+            // แจ้งเตือน Telegram เมื่อแอดมินกดอนุมัติ
+            const message = `✅ *แอดมินยืนยันรายการจองแล้ว*\n` +
+                            `--------------------------\n` +
+                            `📌 รายการ: ${bookings[index].name}\n` +
+                            `📅 วันที่: ${bookings[index].date}\n` +
+                            `⏰ เวลา: ${bookings[index].time} น.\n` +
                             `👤 ผู้จอง: ${customer.fullname}\n` +
-                            `📅 วันที่: ${item.date}\n` +
-                            `⏰ เวลา: ${item.time} น.\n` +
-                            `Admin ได้ทำการตรวจสอบและยืนยันแล้วครับ`;
+                            `--------------------------\n` +
+                            `กรุณามาตรงตามเวลาที่นัดหมายครับ 🙏`;
 
             try {
                 await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        chat_id: TELEGRAM_CHAT_ID, 
-                        text: message, 
-                        parse_mode: 'Markdown' 
-                    })
+                    body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'Markdown' })
                 });
-            } catch (e) { console.error("Error sending Telegram", e); }
+            } catch (err) { console.error("Telegram Error", err); }
 
-            Swal.fire({ icon: 'success', title: 'ยืนยันเรียบร้อย', timer: 1500, showConfirmButton: false });
+            Swal.fire({ icon: 'success', title: 'ยืนยันคิวเรียบร้อย', timer: 1200, showConfirmButton: false });
             renderAdminTable();
         }
     }
 
     function deleteBooking(id) {
         Swal.fire({
-            title: 'ลบรายการนี้?',
+            title: 'ยืนยันการลบ?',
+            text: "ข้อมูลนี้จะหายไปจากทั้งแอดมินและลูกค้า",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'ลบ',
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'ลบรายการ',
             cancelButtonText: 'ยกเลิก'
         }).then((result) => {
             if (result.isConfirmed) {
                 let bookings = DB.getBookings().filter(b => b.id !== id);
                 DB.saveBookings(bookings);
                 renderAdminTable();
+                Swal.fire('ลบข้อมูลสำเร็จ', '', 'success');
             }
         });
     }
 
-    // --- 4. LOGOUT FUNCTION ---
     function logout() {
         Swal.fire({
-            title: 'ยืนยันการออกจากระบบ?',
-            text: "คุณจะต้องเข้าสู่ระบบใหม่อีกครั้ง",
+            title: 'ต้องการออกจากระบบ?',
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#6366f1',
-            cancelButtonColor: '#94a3b8',
-            confirmButtonText: 'ใช่, ออกจากระบบ',
+            confirmButtonText: 'ใช่',
             cancelButtonText: 'ยกเลิก'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // หากมีการเก็บข้อมูล session ให้เคลียร์ที่นี่
-                sessionStorage.clear(); 
-                localStorage.removeItem('isLoggedIn'); // ตัวอย่างการลบสถานะ Login
-                
-                window.location.href = 'login.html';
-            }
-        });
+        }).then((r) => { if(r.isConfirmed) { sessionStorage.clear(); window.location.href = 'login.html'; } });
     }
 
     window.onload = renderAdminTable;
