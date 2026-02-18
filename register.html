@@ -297,6 +297,35 @@
     });
 </script>
 
+    <script src="db.js"></script>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const fullname = document.getElementById('regFullname').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const user = document.getElementById('regUser').value.trim();
+            const pass = document.getElementById('regPass').value;
+
+            if (pass.length < 6) {
+                Swal.fire({ icon: 'error', title: 'รหัสผ่านต้องมี 6 ตัวขึ้นไป' });
+                return;
+            }
+
+            const users = DB.getUsers();
+            if (users.some(u => u.username.toLowerCase() === user.toLowerCase())) {
+                Swal.fire({ icon: 'warning', title: 'ชื่อผู้ใช้นี้มีคนใช้แล้ว' });
+                return;
+            }
+
+            // บันทึกเข้า LocalStorage
+            users.push({ username: user, password: pass, fullname: fullname, phone: phone, role: 'user' });
+            localStorage.setItem('users', JSON.stringify(users));
+
+            Swal.fire({ icon: 'success', title: 'สมัครสมาชิกสำเร็จ' }).then(() => {
+                window.location.href = 'login.html';
+            });
+        });
+    </script>
 
 
 </body>
